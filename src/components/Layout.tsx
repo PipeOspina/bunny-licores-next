@@ -1,7 +1,7 @@
-import React, { FC, useEffect, useRef, useState } from 'react';
-import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button } from '@material-ui/core';
+import React, { FC, useState } from 'react';
+import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button, Hidden, useMediaQuery } from '@material-ui/core';
 import { Menu as MenuIcon, AccountCircle } from '@material-ui/icons';
-import { makeStyles, createStyles } from '@material-ui/styles';
+import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import { useDispatch, useSelector } from 'hooks/redux';
 import { actions } from '@actions/user';
 
@@ -18,16 +18,16 @@ const useStyles = makeStyles<Theme>((theme) =>
             marginRight: theme.spacing(2),
         },
         logo: {
-            [theme.breakpoints.up('md')]: {
+            [theme.breakpoints.up('xs')]: {
                 flexGrow: 1,
             },
-            [theme.breakpoints.down('md')]: {
-                marginRight: 'auto',
+            [theme.breakpoints.down('xs')]: {
+                flexGrow: 1,
             },
             maxHeight: 48,
         },
         logoCentered: {
-            [theme.breakpoints.up('md')]: {
+            [theme.breakpoints.up('sm')]: {
                 marginRight: '-126.5px',
             },
         },
@@ -46,12 +46,18 @@ const useStyles = makeStyles<Theme>((theme) =>
             alignItems: 'center',
             justifyContent: 'center',
         },
+        avatar: {
+            marginLeft: 'auto',
+        },
     }),
 );
 
 export const Layout: FC<Props> = ({ children, title }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [openDrawer, setOpenDrawer] = useState(false);
+
+    const theme = useTheme<Theme>();
+    const matches = useMediaQuery(theme.breakpoints.down('md'));
 
     const open = Boolean(anchorEl);
 
@@ -77,6 +83,8 @@ export const Layout: FC<Props> = ({ children, title }) => {
         setOpenDrawer(current => !current);
     }
 
+    console.log(matches, 'mathces');
+
     return (
         <div className={classes.root}>
             <AppBar position="static">
@@ -93,24 +101,28 @@ export const Layout: FC<Props> = ({ children, title }) => {
                             </IconButton>
                         )
                     }
-                    <img
-                        src="svgs/FullLogo.svg"
-                        alt="Bunny Licores"
-                        className={`${classes.logo} ${!logged ? classes.logoCentered : ''}`}
-                    />
+                    <Hidden xsDown={logged}>
+                        <img
+                            src="svgs/FullLogo.svg"
+                            alt="Bunny Licores"
+                            className={`${classes.logo} ${!logged ? classes.logoCentered : ''}`}
+                        />
+                    </Hidden>
                     {
                         logged
                             ? (
-                                <IconButton
-                                    onClick={handleMenu}
-                                    color="inherit"
-                                >
-                                    <Avatar>
-                                        <AccountCircle />
-                                    </Avatar>
-                                </IconButton>
+                                <div className={classes.avatar}>
+                                    <IconButton
+                                        onClick={handleMenu}
+                                        color="inherit"
+                                    >
+                                        <Avatar>
+                                            <AccountCircle />
+                                        </Avatar>
+                                    </IconButton>
+                                </div>
                             ) : (
-                                <>
+                                <Hidden xsDown>
                                     <Button
                                         variant="contained"
                                         disableElevation
@@ -118,7 +130,7 @@ export const Layout: FC<Props> = ({ children, title }) => {
                                     >
                                         Iniciar Sesión
                                     </Button>
-                                </>
+                                </Hidden>
                             )
                     }
                 </Toolbar>
@@ -139,7 +151,7 @@ export const Layout: FC<Props> = ({ children, title }) => {
                                 <IconButton color="primary" onClick={handleLogin}>
                                     <AccountCircle fontSize="large" />
                                 </IconButton>
-                                <Typography variant="subtitle2">Inicia sesión para continuar</Typography>
+                                <Typography variant={matches ? 'subtitle1' : 'subtitle2'}>Inicia sesión para continuar</Typography>
                             </div>
                         )
                 }
