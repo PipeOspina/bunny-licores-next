@@ -4,6 +4,8 @@ import Head from "next/head";
 import { ThemeProvider } from "@material-ui/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { theme } from "@styles";
+import { Provider } from 'react-redux';
+import { store } from "@store";
 
 class MyApp extends App {
 	componentDidMount() {
@@ -23,11 +25,13 @@ class MyApp extends App {
 					<title>My page</title>
 					<meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
 				</Head>
-				<ThemeProvider theme={theme}>
-					{/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-					<CssBaseline />
-					<Component {...pageProps} />
-				</ThemeProvider>
+				<Provider store={store}>
+					<ThemeProvider theme={theme}>
+						{/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+						<CssBaseline />
+						<Component {...pageProps} />
+					</ThemeProvider>
+				</Provider>
 			</>
 		);
 	}

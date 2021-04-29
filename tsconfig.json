@@ -31,6 +31,24 @@
       "@interfaces/*": [
         "interfaces/*"
       ],
+      "@actions": [
+        "redux/actions/index"
+      ],
+      "@actions/*": [
+        "redux/actions/*"
+      ],
+      "@reducers": [
+        "redux/reducers/index"
+      ],
+      "@reducers/*": [
+        "redux/reducers/*"
+      ],
+      "@store": [
+        "redux/store"
+      ],
+      "@store/*": [
+        "redux/*"
+      ],
     }
   },
   "include": [

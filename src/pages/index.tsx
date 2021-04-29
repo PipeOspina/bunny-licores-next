@@ -6,7 +6,7 @@ const Home = () => {
     return (
         <>
             <Layout title="Bunny Licores.com">
-                <h1>Holi :p</h1>
+
             </Layout>
         </>
     );

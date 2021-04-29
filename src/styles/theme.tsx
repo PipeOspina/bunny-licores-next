@@ -1,9 +1,18 @@
 import { createMuiTheme } from '@material-ui/core/styles';
 
+const primary = '#CE5959'
+
 export const theme = createMuiTheme({
     palette: {
         primary: {
-            main: '#CE5959',
+            main: primary,
+        },
+    },
+    overrides: {
+        MuiButton: {
+            contained: {
+                background: '#FFFFFF',
+            },
         },
     },
 });
