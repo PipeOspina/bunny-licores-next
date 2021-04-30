@@ -1,9 +1,11 @@
 export interface IGlobalCharging {
     auth: boolean;
+    index: boolean;
 }
 
 export const initialGlobalCharging: IGlobalCharging = {
     auth: false,
+    index: false,
 }
 
 export interface IAuthCharging {
@@ -18,5 +20,14 @@ export const initialAuthCharging: IAuthCharging = {
     starting: false,
 }
 
+export interface IIndexCharging {
+    redirect: boolean;
+}
+
+export const initialIndexCharging: IIndexCharging = {
+    redirect: false,
+}
+
 export type TCharging = IGlobalCharging
-    | IAuthCharging;
+    | IAuthCharging
+    | IIndexCharging;

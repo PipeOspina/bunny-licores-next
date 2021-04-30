@@ -7,6 +7,7 @@ import { theme } from '@styles';
 import { Provider } from 'react-redux';
 import { store } from '@store';
 import { withRouter } from 'next/router';
+import Layout from 'components/Layout';
 
 class MyApp extends App {
 	componentDidMount() {
@@ -32,7 +33,9 @@ class MyApp extends App {
 					<ThemeProvider theme={theme}>
 						{/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
 						<CssBaseline />
-						<Component {...pageProps} />
+						<Layout>
+							<Component {...pageProps} />
+						</Layout>
 					</ThemeProvider>
 				</Provider>
 			</>
