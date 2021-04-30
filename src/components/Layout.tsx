@@ -1,13 +1,16 @@
 import React, { FC, useState } from 'react';
-import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button, Hidden, useMediaQuery, ListItemIcon, ListItemText, CircularProgress, Backdrop } from '@material-ui/core';
+import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button, Hidden, useMediaQuery, ListItemIcon, ListItemText, CircularProgress, Backdrop, DialogTitle, Dialog, DialogContent, DialogContentText, DialogActions } from '@material-ui/core';
 import { Menu as MenuIcon, AccountCircle } from '@material-ui/icons';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
-import { useSelector } from 'hooks/redux';
+import { useDispatch, useSelector } from 'hooks/redux';
 import { useAuth } from '@hooks/auth';
 import { Logout } from '@icons';
 import { useCharging } from '@hooks/charging';
 import Link from 'next/link';
 import Head from 'next/head';
+import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import { removeAlert, updateAlert } from '@actions/alert';
 
 interface Props {
     title: string;
@@ -83,8 +86,10 @@ export const Layout: FC<Props> = ({ children, title }) => {
 
     const open = Boolean(anchorEl);
 
-    const user = useSelector((state) => state.user);
+    const { user, alert: alerts } = useSelector((state) => state);
     const logged = !!user;
+
+    const dispatch = useDispatch();
 
     const classes = useStyles();
 
@@ -227,6 +232,61 @@ export const Layout: FC<Props> = ({ children, title }) => {
             <Drawer open={openDrawer} onClose={toggleDrawer}>
 
             </Drawer>
+            {
+                alerts.map((alert) => {
+                    const handleCloseDialog = () => {
+                        dispatch(updateAlert(alert.id, { show: false }))
+                        setTimeout(() => {
+                            dispatch(removeAlert(alert.id));
+                        }, 500)
+                    }
+
+                    return (
+                        <Dialog
+                            open={alert.show}
+                            onClose={handleCloseDialog}
+                            key={`LAYOUT-DEFAULT-DIALOG-${alert.id.toUpperCase()}`}
+                            maxWidth="xs"
+                        >
+                            <DialogTitle>
+                                <Typography variant="inherit" color="primary">{alert.title}</Typography>
+                            </DialogTitle>
+                            <DialogContent>
+                                <Markdown
+                                    components={{
+                                        p: ({ node, ...props }) => <DialogContentText {...props} />,
+                                        strong: ({ node, ...props }) => <b><Typography variant="inherit" color="primary" {...props} /></b>,
+                                    }}
+                                    rehypePlugins={[rehypeRaw]}
+                                >
+                                    {alert.message}
+                                </Markdown>
+                            </DialogContent>
+                            <DialogActions>
+                                {
+                                    alert.cancelButton && (
+                                        <Button onClick={() => {
+                                            handleCloseDialog();
+                                            alert.cancelAction && alert.cancelAction();
+                                        }}>
+                                            Cancelar
+                                        </Button>
+                                    )
+                                }
+                                <Button
+                                    onClick={() => {
+                                        handleCloseDialog();
+                                        alert.acceptAction && alert.acceptAction();
+                                    }}
+                                    color="primary"
+                                >
+                                    Aceptar
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+                    )
+                })
+            }
         </div>
     );
 }

@@ -7,6 +7,8 @@ import { useDispatch } from './redux';
 import { userFromFire } from 'utils/converters';
 import { useCharging } from './charging';
 import { IAuthCharging } from '@interfaces/Charging';
+import { addAlert } from '@actions/alert';
+import { getAlerFromFireAuthError } from 'utils/functions';
 
 export const useAuth = () => {
     const [unsubscriber, setUnsuscriber] = useState<firebase.Unsubscribe | null>(null);
@@ -19,7 +21,10 @@ export const useAuth = () => {
         app
             .auth()
             .signInWithPopup(googleProvider)
-            .catch(console.log)
+            .catch((err) => {
+                const alert = getAlerFromFireAuthError(err.code, 'login');
+                dispatch(addAlert(alert));
+            })
             .finally(() => setCharging('login', false));
     }
 

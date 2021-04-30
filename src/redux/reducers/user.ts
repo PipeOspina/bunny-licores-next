@@ -5,7 +5,7 @@ import { UserActions } from '@constants/user'
 export const userReducer = (
     state: IUser | null = null,
     action: TUserAction
-): IUser => {
+): IUser | null => {
     switch (action.type) {
         case UserActions.SET_USER: {
             return action.payload;
