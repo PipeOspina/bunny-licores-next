@@ -1,4 +1,5 @@
 import { ICommonId, ICommonReference } from '@interfaces/Global';
+import { UserTypes } from '@constants/user';
 
 export interface IUser extends ICommonId {
     phone?: string;
@@ -6,6 +7,8 @@ export interface IUser extends ICommonId {
     email?: string;
     document?: string;
     aliases?: IUserRef[];
+    avatarURL?: string;
+    type: UserTypes;
 }
 
 export interface IUserRef extends ICommonReference<IUser> {
@@ -14,6 +17,7 @@ export interface IUserRef extends ICommonReference<IUser> {
 
 export const initialUser: IUser = {
     name: '',
+    type: UserTypes.UNLOGGED,
 }
 
 export const initialUserRef: IUserRef = {

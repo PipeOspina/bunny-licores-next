@@ -1,11 +1,8 @@
 import { TActionUnion } from "@interfaces/Global";
 import { IUser } from "@interfaces/User";
+import { UserActions } from '@constants/user';
 
-export enum UserActions {
-    SET_USER = 'REDUX/USER/ACTIONS/SET_USER',
-}
-
-const setUser = (user: IUser | null) => {
+export const setUser = (user: (IUser | null)) => {
     return {
         type: UserActions.SET_USER,
         payload: user,

@@ -49,6 +49,30 @@
       "@store/*": [
         "redux/*"
       ],
+      "@services": [
+        "services/firebaseClient"
+      ],
+      "@services/*": [
+        "services/*"
+      ],
+      "@hooks": [
+        "hooks/index"
+      ],
+      "@hooks/*": [
+        "hooks/*"
+      ],
+      "@constants": [
+        "constants/index"
+      ],
+      "@constants/*": [
+        "constants/*"
+      ],
+      "@icons": [
+        "components/icons/index"
+      ],
+      "@icons/*": [
+        "components/icons/*"
+      ],
     }
   },
   "include": [
