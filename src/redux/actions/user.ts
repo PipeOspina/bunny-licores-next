@@ -1,5 +1,5 @@
-import { TActionUnion } from "@interfaces/Global";
-import { IUser } from "@interfaces/User";
+import { TActionUnion } from '@interfaces/Global';
+import { IUser } from '@interfaces/User';
 import { UserActions } from '@constants/user';
 
 export const setUser = (user: (IUser | null)) => {

@@ -1,10 +1,13 @@
 import React, { FC, useState } from 'react';
-import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button, Hidden, useMediaQuery, ListItemIcon, ListItemText } from '@material-ui/core';
+import { AppBar, IconButton, Menu, MenuItem, Toolbar, Theme, Avatar, Drawer, Container, Typography, Button, Hidden, useMediaQuery, ListItemIcon, ListItemText, CircularProgress, Backdrop } from '@material-ui/core';
 import { Menu as MenuIcon, AccountCircle } from '@material-ui/icons';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import { useSelector } from 'hooks/redux';
 import { useAuth } from '@hooks/auth';
 import { Logout } from '@icons';
+import { useCharging } from '@hooks/charging';
+import Link from 'next/link';
+import Head from 'next/head';
 
 interface Props {
     title: string;
@@ -59,13 +62,19 @@ const useStyles = makeStyles<Theme>((theme) =>
             '&>p:first-child': {
                 marginBottom: `-${theme.spacing(.5)}px`,
             },
-        }
+        },
+        backdrop: {
+            zIndex: theme.zIndex.drawer + 1,
+            color: '#FFFFFF',
+        },
     }),
 );
 
 export const Layout: FC<Props> = ({ children, title }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [openDrawer, setOpenDrawer] = useState(false);
+
+    const { globalCharging } = useCharging();
 
     const { login, logout } = useAuth();
 
@@ -102,6 +111,10 @@ export const Layout: FC<Props> = ({ children, title }) => {
 
     return (
         <div className={classes.root}>
+            <Head>
+                <title>{logged ? title : 'Iniciar Sesión'} - Bunny Licores</title>
+                <meta property="og:title" content={`${logged ? title : 'Iniciar Sesión'} - Bunny Licores`} key="title" />
+            </Head>
             <AppBar position="static">
                 <Toolbar>
                     {
@@ -117,11 +130,13 @@ export const Layout: FC<Props> = ({ children, title }) => {
                         )
                     }
                     <Hidden xsDown={logged}>
-                        <img
-                            src="/svgs/FullLogo.svg"
-                            alt="Logo of the liquor store"
-                            className={`${classes.logo} ${!logged ? classes.logoCentered : ''}`}
-                        />
+                        <Link href="/">
+                            <img
+                                src="/svgs/FullLogo.svg"
+                                alt="Logo of the liquor store"
+                                className={`${classes.logo} ${!logged ? classes.logoCentered : ''}`}
+                            />
+                        </Link>
                     </Hidden>
                     {
                         logged
@@ -206,6 +221,9 @@ export const Layout: FC<Props> = ({ children, title }) => {
                     <ListItemText primary="Cerrar Sesión" onClick={handleLogout} />
                 </MenuItem>
             </Menu>
+            <Backdrop className={classes.backdrop} open={globalCharging}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Drawer open={openDrawer} onClose={toggleDrawer}>
 
             </Drawer>

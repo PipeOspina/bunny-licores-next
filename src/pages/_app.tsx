@@ -1,11 +1,12 @@
-import React from "react";
-import App from "next/app";
-import Head from "next/head";
-import { ThemeProvider } from "@material-ui/styles";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { theme } from "@styles";
+import React from 'react';
+import App from 'next/app';
+import Head from 'next/head';
+import { ThemeProvider } from '@material-ui/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { theme } from '@styles';
 import { Provider } from 'react-redux';
-import { store } from "@store";
+import { store } from '@store';
+import { withRouter } from 'next/router';
 
 class MyApp extends App {
 	componentDidMount() {
@@ -22,7 +23,9 @@ class MyApp extends App {
 		return (
 			<>
 				<Head>
-					<title>My page</title>
+					<title>Bunny Licores</title>
+					<meta property="og:title" content="Bunny Licores" key="title" />
+					<meta charSet="utf-8" />
 					<meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
 				</Head>
 				<Provider store={store}>
@@ -37,4 +40,4 @@ class MyApp extends App {
 	}
 }
 
-export default MyApp;
+export default withRouter(MyApp);
