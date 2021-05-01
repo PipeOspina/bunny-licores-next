@@ -9,6 +9,7 @@ export interface IProduct extends ICommonId {
     price: number;
     stockQuantity: number;
     lastModification: IProductModification;
+    defaultDeposit?: number;
 }
 
 export interface IProductModification {
@@ -19,8 +20,6 @@ export interface IProductModification {
 
 export interface IProductRef extends ICommonReference<IProduct> {
     name: string;
-    price: number;
-    quantity: number;
 }
 
 export const initialProductMod: IProductModification = {
@@ -39,6 +38,4 @@ export const initialProduct: IProduct = {
 
 export const initialProductRef: IProductRef = {
     name: '',
-    price: 0,
-    quantity: 0,
 }

@@ -1,13 +1,18 @@
 import { IProductRef } from '@interfaces/Product';
 import { IUserRef, initialUserRef } from '@interfaces/User';
-import { ICommonId } from '@interfaces/Global';
+import { ICommonId, ICommonReference } from '@interfaces/Global';
+import { IMovement } from './Movement';
 
 export interface ISale extends ICommonId {
-    products: IProductRef[];
+    products: IMovement[];
     date: Date;
     client: IUserRef;
-    price: number;
-    deposit?: ISaleDeposit;
+    subtotal: number;
+    tip: number;
+    total: number;
+    pay: number;
+    back: number;
+    paymentMethod: IPaymentMethodRef[];
 }
 
 export interface ISaleDeposit {
@@ -18,10 +23,29 @@ export interface ISaleDeposit {
 export const initialSale: ISale = {
     client: initialUserRef,
     date: new Date(),
-    price: 0,
+    subtotal: 0,
+    tip: 0,
+    total: 0,
     products: [],
+    back: 0,
+    pay: 0,
+    paymentMethod: [{
+        amount: 0,
+        name: '',
+
+    }]
 }
 
 export const initialSaleDeposit: ISaleDeposit = {
     amount: 0,
+}
+
+export interface IPaymentMethod {
+    commission: number;
+    name: string;
+}
+
+export interface IPaymentMethodRef extends ICommonReference<IPaymentMethod> {
+    name: string;
+    amount: number;
 }
