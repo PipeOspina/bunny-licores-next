@@ -49,3 +49,5 @@ export interface IPaymentMethodRef extends ICommonReference<IPaymentMethod> {
     name: string;
     amount: number;
 }
+
+

@@ -46,9 +46,6 @@ export const Layout: FC = ({ children }) => {
         login();
     }
 
-
-    console.log(process.env.NEXT_PUBLIC_FIREBASE__API_KEY)
-
     return (
         <div className={classes.root}>
             <Toolbar />

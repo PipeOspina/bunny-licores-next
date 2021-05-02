@@ -29,6 +29,9 @@ export const initialProductMod: IProductModification = {
 }
 
 export const initialProduct: IProduct = {
+    barcode: '',
+    defaultDeposit: 0,
+    image: '',
     lastModification: initialProductMod,
     name: '',
     price: 0,

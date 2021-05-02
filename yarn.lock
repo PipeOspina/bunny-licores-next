@@ -2383,6 +2383,13 @@ react-markdown@^6.0.1:
     unified "^9.0.0"
     unist-util-visit "^2.0.0"
 
+react-number-format@^4.5.5:
+  version "4.5.5"
+  resolved "https://registry.yarnpkg.com/react-number-format/-/react-number-format-4.5.5.tgz#563807ee142a03857111115806d39767bc698797"
+  integrity sha512-3NGqgSbMUwRwgJ4852RH24UFkW89yx/e0P78Hwmf3TajLMKCOJ7DPJCcl/6z+2+HpJ8AG7je/J8na3ykWx8acg==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-redux@^7.2.4:
   version "7.2.4"
   resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-7.2.4.tgz#1ebb474032b72d806de2e0519cd07761e222e225"

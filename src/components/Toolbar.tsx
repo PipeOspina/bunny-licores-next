@@ -1,11 +1,15 @@
 import { useAuth } from "@hooks/auth";
 import { useSelector } from "@hooks/redux";
 import { Logout } from "@icons";
-import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography } from "@material-ui/core";
+import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography } from "@material-ui/core";
 import { Menu as MenuIcon } from '@material-ui/icons';
 import { createStyles, makeStyles } from "@material-ui/styles";
 import Link from "next/link";
 import { FC, useState } from "react";
+import { MenuItems } from '@constants/global';
+import { useRouter } from "next/router";
+import { useCharging } from "@hooks/charging";
+import { IIndexCharging } from "@interfaces/Charging";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -40,6 +44,12 @@ const useStyles = makeStyles((theme: Theme) =>
                 marginBottom: `-${theme.spacing(.5)}px`,
             },
         },
+        drawerContainer: {
+            width: 250,
+        },
+        selectedItem: {
+            color: theme.palette.primary.main,
+        }
     }),
 );
 
@@ -50,6 +60,8 @@ const CustomToolbar: FC = () => {
     const user = useSelector(({ user }) => user);
     const { login, logout } = useAuth();
     const classes = useStyles();
+    const router = useRouter();
+    const { setCharging } = useCharging<IIndexCharging>('index');
 
     const open = Boolean(anchorEl);
 
@@ -72,6 +84,16 @@ const CustomToolbar: FC = () => {
 
     const handleLogin = () => {
         login();
+    }
+
+    const handleHover = (path: string) => {
+        router.prefetch(path);
+    }
+
+    const handleGoTo = (path: string) => {
+        toggleDrawer();
+        setCharging('redirect');
+        router.push(path);
     }
 
     return (
@@ -162,7 +184,27 @@ const CustomToolbar: FC = () => {
                 </MenuItem>
             </Menu>
             <Drawer open={openDrawer} onClose={toggleDrawer}>
-
+                <div className={classes.drawerContainer}>
+                    <List>
+                        {
+                            MenuItems.map((item) => {
+                                const selected = router.pathname.includes(item.path);
+                                return (
+                                    <ListItem
+                                        button
+                                        key={`MENU-ITEM-${item.path.toUpperCase()}-${item.name.toUpperCase()}`}
+                                        onMouseEnter={() => handleHover(item.path)}
+                                        onClick={() => handleGoTo(item.path)}
+                                        selected={selected}
+                                    >
+                                        <ListItemIcon><item.icon color={selected ? 'primary' : 'inherit'} /></ListItemIcon>
+                                        <ListItemText primary={item.name} className={selected ? classes.selectedItem : ''} />
+                                    </ListItem>
+                                )
+                            })
+                        }
+                    </List>
+                </div>
             </Drawer>
         </>
     );

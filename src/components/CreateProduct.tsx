@@ -1,0 +1,233 @@
+import { initialProduct, IProduct, IProductModification } from '@interfaces/Product';
+import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Theme, useMediaQuery } from '@material-ui/core';
+import React, { ChangeEventHandler, FC, KeyboardEventHandler, LegacyRef, useRef, useState } from 'react';
+import NumberFormat from 'components/CustomNumberFormat';
+import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
+import { Close, PhotoCamera } from '@material-ui/icons';
+import { useDispatch } from '@hooks/redux';
+import { addAlert } from '@actions/alert';
+
+interface Props {
+
+}
+
+type Errors = {
+    [P in keyof IProduct]?: string;
+};
+
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        closeButton: {
+            marginLeft: 'auto',
+        },
+        title: {
+            '& h2': {
+                display: 'flex',
+                alignItems: 'center',
+            }
+        },
+        container: {
+            display: 'flex',
+            paddingBottom: theme.spacing(3),
+        },
+        avatarColumn: {
+            alignSelf: 'center',
+            marginRight: theme.spacing(2),
+        },
+        formColumn: {
+            '& > *': {
+                width: '100%',
+                '&:not(:last-child)': {
+                    marginBottom: theme.spacing(2),
+                },
+            },
+        },
+        doubleInput: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            '& > *': {
+                width: '48%',
+            }
+        },
+    }),
+);
+
+const CreateProduct: FC<Props> = ({ }) => {
+    const [open, setOpen] = useState(false);
+    const [product, setProduct] = useState<IProduct>(initialProduct);
+    const [errors, setErrors] = useState<Errors>({});
+    const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+
+    const classes = useStyles();
+    const theme = useTheme<Theme>();
+    const matches = useMediaQuery(theme.breakpoints.down('xs'));
+    const dispatch = useDispatch();
+
+    const toggleOpen = () => {
+        setOpen((current) => {
+            if (current) {
+                setTimeout(() => {
+                    setProduct(initialProduct);
+                    setErrors({});
+                    setUploadedImage(null);
+                }, 500);
+            }
+            return !current;
+        });
+    }
+
+    const updateProduct = (
+        key: keyof IProduct,
+        value: string | number | Date | IProductModification
+    ) => {
+        setErrors((current) => ({ ...current, [key]: undefined }))
+        setProduct((current) => ({
+            ...current,
+            [key]: value,
+        }));
+    }
+
+    const handleCreate = () => {
+        if (!product.name || !product.price || !product.barcode) {
+            setErrors({
+                barcode: !product.barcode
+                    ? 'Lee el código de barras del producto'
+                    : undefined,
+                name: !product.name
+                    ? 'Ingresa un nombre para el producto'
+                    : undefined,
+                price: !product.price
+                    ? 'Ingresa un precio para el producto'
+                    : undefined,
+            });
+        } else {
+            toggleOpen();
+        }
+    }
+
+    const handleFileSelect: ChangeEventHandler<HTMLInputElement> = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.type.includes('image')) {
+                setUploadedImage(file);
+                updateProduct('image', URL.createObjectURL(file));
+            } else {
+                dispatch(addAlert({
+                    id: 'invalid-file-type',
+                    message: 'Solo puedes subir archivos de tipo <b>imagen</b> para tus productos',
+                    show: true,
+                    title: 'Archivo Invalido',
+                }));
+            }
+        }
+    }
+
+    const handleUploadPhoto = () => {
+        document.getElementById('productPhotoInput').click();
+    }
+
+    const handleKeyPressed: KeyboardEventHandler<HTMLDivElement> = (e) => {
+        if (e.key === 'Enter') {
+            handleCreate();
+        }
+    }
+
+    return (
+        <>
+            <Button
+                onClick={toggleOpen}
+                color="primary"
+                variant="contained"
+            >
+                Crear Producto
+            </Button>
+            <Dialog
+                onClose={toggleOpen}
+                open={open}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle className={classes.title}>
+                    Crear Producto
+                    <IconButton className={classes.closeButton} onClick={toggleOpen}>
+                        <Close />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent className={classes.container} onKeyPress={handleKeyPressed}>
+                    <div className={classes.avatarColumn}>
+                        <IconButton onClick={handleUploadPhoto}>
+                            <Avatar src={product.image}>
+                                <PhotoCamera />
+                            </Avatar>
+                        </IconButton>
+                    </div>
+                    <div className={classes.formColumn}>
+                        <TextField
+                            value={product.name}
+                            placeholder="Nombre del producto"
+                            label="Nombre"
+                            onChange={({ target }) => updateProduct('name', target.value)}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            error={!!errors.name}
+                            helperText={errors.name}
+                        />
+                        <div className={matches ? classes.formColumn : classes.doubleInput}>
+                            <TextField
+                                value={product.price || ''}
+                                placeholder="Precio del producto"
+                                label="Precio"
+                                InputProps={{
+                                    inputComponent: NumberFormat as any
+                                }}
+                                onChange={({ target }) => {
+                                    const value = Number(target.value)
+                                    const price = isNaN(value) ? 0 : value;
+                                    updateProduct('price', Number(price))
+                                }}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                error={!!errors.price}
+                                helperText={errors.price}
+                            />
+                            <TextField
+                                value={product.barcode}
+                                placeholder="Código de barras"
+                                label="Código de Barras"
+                                onChange={({ target }) => updateProduct('barcode', target.value)}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                error={!!errors.barcode}
+                                helperText={errors.barcode}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={toggleOpen}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={handleCreate}
+                    >
+                        Crear
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <input
+                type="file"
+                id="productPhotoInput"
+                onChange={handleFileSelect}
+                accept="image/*"
+                hidden
+            />
+        </>
+    );
+}
+
+export default CreateProduct;
