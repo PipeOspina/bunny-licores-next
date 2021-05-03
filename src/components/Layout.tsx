@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) =>
             justifyContent: 'center',
         },
         backdrop: {
-            zIndex: theme.zIndex.drawer + 1,
+            zIndex: theme.zIndex.modal + 1,
             color: '#FFFFFF',
         },
     }),

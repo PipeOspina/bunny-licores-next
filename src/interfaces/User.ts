@@ -13,6 +13,7 @@ export interface IUser extends ICommonId {
 
 export interface IUserRef extends ICommonReference<IUser> {
     name: string;
+    email?: string;
 }
 
 export const initialUser: IUser = {

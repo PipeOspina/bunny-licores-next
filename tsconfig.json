@@ -73,6 +73,18 @@
       "@icons/*": [
         "components/icons/*"
       ],
+      "@storage": [
+        "services/storage/index"
+      ],
+      "@storage/*": [
+        "services/storage/*"
+      ],
+      "@firestore": [
+        "services/firestore/index"
+      ],
+      "@firestore/*": [
+        "services/firestore/*"
+      ],
     }
   },
   "include": [

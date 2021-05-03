@@ -1,9 +1,15 @@
+import firebase from 'firebase';
+
 export interface ICommonId {
     id?: string;
 }
 
+export type TCommonReference<T = firebase.firestore.DocumentData> = firebase
+    .firestore
+    .DocumentReference<T | firebase.firestore.DocumentData>;
+
 export interface ICommonReference<T = unknown> extends ICommonId {
-    ref?: T;
+    ref?: TCommonReference<T>;
 }
 
 export type TPartial<T> = {

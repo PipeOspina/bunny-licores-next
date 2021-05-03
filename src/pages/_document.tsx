@@ -8,6 +8,7 @@ export default class MyDocument extends Document {
 		return (
 			<Html lang="es">
 				<Head>
+					<link rel="manifest" href="/site.webmanifest.json" />
 					<meta name="theme-color" content={theme.palette.primary.main} />
 					<link rel="shortcut icon" href="/favicon-32x32.png" />
 					<link

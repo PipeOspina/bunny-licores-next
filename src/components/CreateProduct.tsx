@@ -1,11 +1,16 @@
-import { initialProduct, IProduct, IProductModification } from '@interfaces/Product';
+import { initialProduct, IProduct, IProductModRef } from '@interfaces/Product';
 import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Theme, useMediaQuery } from '@material-ui/core';
-import React, { ChangeEventHandler, FC, KeyboardEventHandler, LegacyRef, useRef, useState } from 'react';
+import React, { ChangeEventHandler, FC, KeyboardEventHandler, useState } from 'react';
 import NumberFormat from 'components/CustomNumberFormat';
 import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
 import { Close, PhotoCamera } from '@material-ui/icons';
-import { useDispatch } from '@hooks/redux';
+import { useDispatch, useSelector } from '@hooks/redux';
 import { addAlert } from '@actions/alert';
+import { addProduct } from '@firestore/product';
+import { useSubscription } from '@hooks/subscription';
+import { IProductSubscriptions } from '@interfaces/Subscription';
+import { useCharging } from '@hooks/charging';
+import { IProductCharging } from '@interfaces/Charging';
 
 interface Props {
 
@@ -29,6 +34,9 @@ const useStyles = makeStyles((theme: Theme) =>
         container: {
             display: 'flex',
             paddingBottom: theme.spacing(3),
+            [theme.breakpoints.down('xs')]: {
+                flexDirection: 'column',
+            },
         },
         avatarColumn: {
             alignSelf: 'center',
@@ -62,6 +70,9 @@ const CreateProduct: FC<Props> = ({ }) => {
     const theme = useTheme<Theme>();
     const matches = useMediaQuery(theme.breakpoints.down('xs'));
     const dispatch = useDispatch();
+    const { setSubscribtion, unsubscribe } = useSubscription<IProductSubscriptions>();
+    const { setCharging } = useCharging<IProductCharging>('product');
+    const user = useSelector(({ user }) => user);
 
     const toggleOpen = () => {
         setOpen((current) => {
@@ -70,6 +81,8 @@ const CreateProduct: FC<Props> = ({ }) => {
                     setProduct(initialProduct);
                     setErrors({});
                     setUploadedImage(null);
+                    unsubscribe('uploadPhoto');
+                    setCharging('addProduct', false);
                 }, 500);
             }
             return !current;
@@ -78,7 +91,7 @@ const CreateProduct: FC<Props> = ({ }) => {
 
     const updateProduct = (
         key: keyof IProduct,
-        value: string | number | Date | IProductModification
+        value: string | number | IProductModRef
     ) => {
         setErrors((current) => ({ ...current, [key]: undefined }))
         setProduct((current) => ({
@@ -101,8 +114,29 @@ const CreateProduct: FC<Props> = ({ }) => {
                     : undefined,
             });
         } else {
-            toggleOpen();
+            createProduct();
         }
+    }
+
+    const createProduct = () => {
+        setCharging('addProduct');
+        const handlers = {
+            getSubscribtion: (sub) => setSubscribtion('uploadPhoto', sub),
+            onError: (err) => {
+                console.log(err);
+                setCharging('addProduct', false);
+            },
+            onComplete: () => {
+                toggleOpen();
+                setCharging('addProduct', false);
+            },
+        }
+        addProduct(
+            product,
+            user,
+            uploadedImage,
+            handlers,
+        );
     }
 
     const handleFileSelect: ChangeEventHandler<HTMLInputElement> = (event) => {

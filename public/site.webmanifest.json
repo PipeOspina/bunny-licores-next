@@ -1,0 +1,21 @@
+{
+    "name": "Bunny Licores Next",
+    "short_name": "Bunny Licores",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#CE5959",
+    "background_color": "#FFFFFF",
+    "display": "standalone",
+    "start_url": "/ventas",
+    "orientation": "portrait-primary"
+}

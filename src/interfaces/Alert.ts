@@ -1,5 +1,3 @@
-import { ReactNode } from 'react';
-
 export interface IAlert {
     id: string;
     title: string;

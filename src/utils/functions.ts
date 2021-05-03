@@ -1,3 +1,4 @@
+import firebase from 'firebase';
 import { FireAuthErrorTypes } from "@constants/error";
 import { IAlert, initialAlert } from "@interfaces/Alert";
 
