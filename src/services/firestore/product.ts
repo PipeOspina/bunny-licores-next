@@ -3,11 +3,13 @@ import { IProduct, IProductMod } from '@interfaces/Product';
 import { db } from '../firebaseClient';
 import { IUser } from '@interfaces/User';
 import { ModificationTypes } from '@constants/product';
-import { TCommonReference } from '@interfaces/Global';
+import { TCommonQuerySnapshot, TCommonReference } from '@interfaces/Global';
 import { uploadImage } from '@services/storage/product';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 type ProductRef = TCommonReference<IProduct>;
+type QuerySnapshot = TCommonQuerySnapshot<IProduct>;
 
 const products = db.collection('Products');
 
@@ -33,7 +35,7 @@ export const addProduct = async (
     product: IProduct,
     { name, id, email }: IUser,
     image?: File,
-    imageHandlers?: {
+    handlers?: {
         getSubscribtion: (subscription: Subscription) => void,
         onError: (error: firebase.storage.FirebaseStorageError) => void;
         onSnapshot?: (snapshot) => void;
@@ -69,27 +71,41 @@ export const addProduct = async (
                         product.image = url;
                         await docRef.set(product);
                         await modRef.set(mod);
-                        imageHandlers.onComplete();
+                        handlers.onComplete && handlers.onComplete();
                         res(null);
                     },
-                    error: imageHandlers.onError,
-                    next: imageHandlers.onSnapshot,
+                    error: handlers.onError,
+                    next: handlers.onSnapshot,
                 });
-            imageHandlers.getSubscribtion(sub);
+            handlers.getSubscribtion(sub);
         });
     } else {
         await docRef.set(product);
         await modRef.set(mod);
+        handlers.onComplete && handlers.onComplete();
     }
 
     return docRef;
 }
 
-export const addModification = async (
-    modification: IProductMod,
-    productId: string,
-    ref?: ProductRef,
-) => {
-    const modRef = ref || createModRef(productId)
-    await modRef.set(modification)
+export const getProducts = () => {
+    return new Observable<QuerySnapshot>((observer) => {
+        products
+            .onSnapshot(
+                (res: QuerySnapshot) => { observer.next(res) },
+                (err) => { observer.error(err) },
+                () => { observer.complete(); console.log('complete (?)') },
+            )
+    })
+        .pipe(
+            map((res) => {
+                const prods = res
+                    .docs
+                    .map((doc) => {
+                        const data = doc.data();
+                        return { ...data, ref: doc.ref };
+                    })
+                return { ...res, data: prods }
+            }),
+        );
 }

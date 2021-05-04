@@ -1,9 +1,9 @@
 import { useAuth } from "@hooks/auth";
 import { useSelector } from "@hooks/redux";
 import { Logout } from "@icons";
-import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography } from "@material-ui/core";
+import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography, useMediaQuery } from "@material-ui/core";
 import { Menu as MenuIcon } from '@material-ui/icons';
-import { createStyles, makeStyles } from "@material-ui/styles";
+import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { MenuItems } from '@constants/global';
@@ -17,14 +17,11 @@ const useStyles = makeStyles((theme: Theme) =>
             marginRight: theme.spacing(2),
         },
         logo: {
-            [theme.breakpoints.up('xs')]: {
-                flexGrow: 1,
-            },
-            [theme.breakpoints.down('xs')]: {
-                flexGrow: 1,
-            },
             maxHeight: 48,
             cursor: 'pointer',
+        },
+        logoGrow: {
+            flexGrow: 1,
         },
         logoCentered: {
             [theme.breakpoints.up('sm')]: {
@@ -62,6 +59,8 @@ const CustomToolbar: FC = () => {
     const classes = useStyles();
     const router = useRouter();
     const { setCharging } = useCharging<IIndexCharging>('index');
+    const theme = useTheme<Theme>();
+    const matches = useMediaQuery(theme.breakpoints.down('sm'));
 
     const open = Boolean(anchorEl);
 
@@ -112,15 +111,24 @@ const CustomToolbar: FC = () => {
                             </IconButton>
                         )
                     }
-                    <Hidden xsDown={!!user}>
-                        <Link href="/">
-                            <img
-                                src="/svgs/FullLogo.svg"
-                                alt="Logo of the liquor store"
-                                className={`${classes.logo} ${!user ? classes.logoCentered : ''}`}
-                            />
-                        </Link>
-                    </Hidden>
+                    <Link href="/">
+                        {
+                            matches && user
+                                ? (
+                                    <img
+                                        src="/svgs/Logo.svg"
+                                        alt="Logo of the liquor store"
+                                        className={`${classes.logo} ${classes.logoGrow}`}
+                                    />
+                                ) : (
+                                    <img
+                                        src="/svgs/FullLogo.svg"
+                                        alt="Logo of the liquor store"
+                                        className={`${classes.logo} ${classes.logoGrow} ${!user ? classes.logoCentered : ''}`}
+                                    />
+                                )
+                        }
+                    </Link>
                     {
                         user
                             ? (

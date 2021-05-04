@@ -12,6 +12,7 @@ export interface IProduct extends ICommonId {
     stockQuantity: number;
     lastModification?: IProductModRef;
     defaultDeposit?: number;
+    ref?: ICommonReference<IProduct>;
 }
 
 export interface IProductMod extends ICommonId {

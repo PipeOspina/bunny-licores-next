@@ -1,4 +1,5 @@
 import firebase from 'firebase';
+import { Observable } from 'redux';
 
 export interface ICommonId {
     id?: string;
@@ -7,6 +8,10 @@ export interface ICommonId {
 export type TCommonReference<T = firebase.firestore.DocumentData> = firebase
     .firestore
     .DocumentReference<T | firebase.firestore.DocumentData>;
+
+export type TCommonQuerySnapshot<T = firebase.firestore.DocumentData> = firebase
+    .firestore
+    .QuerySnapshot<T>
 
 export interface ICommonReference<T = unknown> extends ICommonId {
     ref?: TCommonReference<T>;

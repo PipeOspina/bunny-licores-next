@@ -32,10 +32,12 @@ export const initialIndexCharging: IIndexCharging = {
 
 export interface IProductCharging {
     addProduct: boolean;
+    getProducts: boolean;
 }
 
 export const initialProductCharging: IProductCharging = {
     addProduct: false,
+    getProducts: false,
 }
 
 export type TCharging = IGlobalCharging
