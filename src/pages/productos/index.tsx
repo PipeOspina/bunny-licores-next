@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const Products = () => {
     const [products, setProducts] = useState<IProduct[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<IProduct[]>([]);
 
     const { setCharging: indexCharging } = useCharging<IIndexCharging>('index');
     const { setCharging } = useCharging<IProductCharging>('product');
@@ -39,6 +40,7 @@ const Products = () => {
         : matchTablet
             ? TableHeaders.filter((header) => header.tablet || header.mobile)
             : TableHeaders;
+    const selectedIds = selectedProducts.map((prod) => prod.id);
 
     useEffect(() => {
         indexCharging('redirect', false)
@@ -55,6 +57,33 @@ const Products = () => {
         )
     }, []);
 
+    const handleSelectRow = (product: IProduct) => {
+        setSelectedProducts((current) => {
+            if (current.includes(product)) {
+                return current.filter((prod) => prod !== product)
+            }
+            return [
+                ...current,
+                product,
+            ]
+        });
+    }
+
+    const toggleAllChecked = () => {
+        setSelectedProducts((
+            selectedProducts.length === 0
+                ? products
+                : []
+        ));
+    }
+
+    const checkboxProps = {
+        onClick: toggleAllChecked,
+        rowsSelected: selectedProducts.length,
+        totalRows: products.length,
+        header: 'holi :p'
+    }
+
     return (
         <>
             <div className={classes.head}>
@@ -66,11 +95,13 @@ const Products = () => {
                     <Table>
                         <TableHeah
                             columns={headers}
-                            checkbox
+                            checkbox={checkboxProps}
                         />
                         <TableBody
                             columns={headers}
                             products={products}
+                            onCheck={handleSelectRow}
+                            checked={selectedIds}
                         />
                     </Table>
                 </TableContainer>

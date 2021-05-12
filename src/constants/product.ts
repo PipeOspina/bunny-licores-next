@@ -7,7 +7,6 @@ export const TableHeaders: ProductTableHeaders = [
         component: 'Foto',
         id: 'image',
         tablet: true,
-        noSort: true,
         align: 'center'
     }, {
         component: 'Código de Barras',
@@ -30,10 +29,6 @@ export const TableHeaders: ProductTableHeaders = [
         id: 'price',
         mobile: true,
         align: 'center'
-    }, {
-        component: 'Acciones',
-        id: 'Actions',
-        noSort: true,
     },
 ];
 
