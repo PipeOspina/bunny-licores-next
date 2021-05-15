@@ -1,5 +1,5 @@
 import { initialProduct, IProduct, IProductModRef } from '@interfaces/Product';
-import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Theme, useMediaQuery } from '@material-ui/core';
+import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grow, IconButton, TextField, Theme, Typography, useMediaQuery, Zoom } from '@material-ui/core';
 import React, { ChangeEventHandler, FC, KeyboardEventHandler, useState } from 'react';
 import NumberFormat from 'components/CustomNumberFormat';
 import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
@@ -11,6 +11,7 @@ import { useSubscription } from '@hooks/subscription';
 import { IProductSubscriptions } from '@interfaces/Subscription';
 import { useCharging } from '@hooks/charging';
 import { IProductCharging } from '@interfaces/Charging';
+import { numberToCOP } from 'utils/converters';
 
 interface Props {
 
@@ -74,6 +75,8 @@ const CreateProduct: FC<Props> = ({ }) => {
     const { setCharging } = useCharging<IProductCharging>('product');
     const user = useSelector(({ user }) => user);
 
+    const profit = numberToCOP(product.sellPrice - product.buyPrice)
+
     const toggleOpen = () => {
         setOpen((current) => {
             if (current) {
@@ -101,7 +104,7 @@ const CreateProduct: FC<Props> = ({ }) => {
     }
 
     const handleCreate = () => {
-        if (!product.name || !product.price || !product.barcode) {
+        if (!product.name || !product.sellPrice || !product.buyPrice || !product.barcode) {
             setErrors({
                 barcode: !product.barcode
                     ? 'Lee el código de barras del producto'
@@ -109,8 +112,11 @@ const CreateProduct: FC<Props> = ({ }) => {
                 name: !product.name
                     ? 'Ingresa un nombre para el producto'
                     : undefined,
-                price: !product.price
-                    ? 'Ingresa un precio para el producto'
+                sellPrice: !product.sellPrice
+                    ? 'En cuanto lo vendes'
+                    : undefined,
+                buyPrice: !product.buyPrice
+                    ? 'En cuanto lo compraste'
                     : undefined,
             });
         } else {
@@ -197,6 +203,19 @@ const CreateProduct: FC<Props> = ({ }) => {
                     </div>
                     <div className={classes.formColumn}>
                         <TextField
+                            value={product.barcode}
+                            placeholder="Código de barras"
+                            label="Código de Barras"
+                            onChange={({ target }) => updateProduct('barcode', target.value)}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            error={!!errors.barcode}
+                            helperText={errors.barcode}
+                            autoFocus
+                            required
+                        />
+                        <TextField
                             value={product.name}
                             placeholder="Nombre del producto"
                             label="Nombre"
@@ -206,38 +225,53 @@ const CreateProduct: FC<Props> = ({ }) => {
                             }}
                             error={!!errors.name}
                             helperText={errors.name}
+                            required
                         />
                         <div className={matches ? classes.formColumn : classes.doubleInput}>
                             <TextField
-                                value={product.price || ''}
-                                placeholder="Precio del producto"
-                                label="Precio"
+                                value={product.buyPrice || ''}
+                                placeholder="Precio de compra"
+                                label="Compra"
                                 InputProps={{
                                     inputComponent: NumberFormat as any
                                 }}
                                 onChange={({ target }) => {
                                     const value = Number(target.value)
                                     const price = isNaN(value) ? 0 : value;
-                                    updateProduct('price', Number(price))
+                                    updateProduct('buyPrice', Number(price))
                                 }}
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
-                                error={!!errors.price}
-                                helperText={errors.price}
+                                error={!!errors.buyPrice}
+                                helperText={errors.buyPrice}
+                                required
                             />
                             <TextField
-                                value={product.barcode}
-                                placeholder="Código de barras"
-                                label="Código de Barras"
-                                onChange={({ target }) => updateProduct('barcode', target.value)}
+                                value={product.sellPrice || ''}
+                                placeholder="Precio de venta"
+                                label="Venta"
+                                InputProps={{
+                                    inputComponent: NumberFormat as any
+                                }}
+                                onChange={({ target }) => {
+                                    const value = Number(target.value)
+                                    const price = isNaN(value) ? 0 : value;
+                                    updateProduct('sellPrice', Number(price))
+                                }}
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
-                                error={!!errors.barcode}
-                                helperText={errors.barcode}
+                                error={!!errors.sellPrice}
+                                helperText={errors.sellPrice}
+                                required
                             />
                         </div>
+                        <Grow in={!!(product.sellPrice && product.buyPrice)}>
+                            <Typography color="primary">
+                                {product.sellPrice >= product.buyPrice ? 'Ganancia' : 'Perdida'} de {profit}
+                            </Typography>
+                        </Grow>
                     </div>
                 </DialogContent>
                 <DialogActions>

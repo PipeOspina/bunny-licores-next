@@ -85,6 +85,12 @@
       "@firestore/*": [
         "services/firestore/*"
       ],
+      "@utils": [
+        "utils/index"
+      ],
+      "@utils/*": [
+        "utils/*"
+      ],
     }
   },
   "include": [

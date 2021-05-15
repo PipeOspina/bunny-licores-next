@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 
 const Product = () => {
     const router = useRouter();
-    const { id } = router.query;
+    const { barcode } = router.query;
 
     return (
         <>
-            Id de Producto: {id}
+            Código de barras: {barcode}
         </>
     );
 }

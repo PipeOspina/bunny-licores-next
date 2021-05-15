@@ -25,10 +25,13 @@ export const TableHeaders: ProductTableHeaders = [
         id: 'soldQuantity',
         align: 'center'
     }, {
-        component: 'Precio',
-        id: 'price',
+        component: 'Precio Compra',
+        id: 'buyPrice',
+        tablet: true,
+    }, {
+        component: 'Precio Venta',
+        id: 'sellPrice',
         mobile: true,
-        align: 'center'
     },
 ];
 

@@ -1,4 +1,3 @@
-import firebase from 'firebase'
 import { ModificationTypes } from '@constants/product';
 import { ICommonId, TPartial, ICommonReference } from '@interfaces/Global';
 import { IUserRef, initialUserRef } from '@interfaces/User';
@@ -8,7 +7,8 @@ export interface IProduct extends ICommonId {
     image?: string;
     soldQuantity: number;
     barcode?: string;
-    price: number;
+    sellPrice: number;
+    buyPrice: number;
     stockQuantity: number;
     lastModification?: IProductModRef;
     defaultDeposit?: number;
@@ -42,7 +42,8 @@ export const initialProduct: IProduct = {
     defaultDeposit: 0,
     image: '',
     name: '',
-    price: 0,
+    sellPrice: 0,
+    buyPrice: 0,
     soldQuantity: 0,
     stockQuantity: 0,
 }

@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 import { store } from '@store';
 import { withRouter } from 'next/router';
 import Layout from 'components/Layout';
-
+import '../utils/polyfills';
 class MyApp extends App {
 	componentDidMount() {
 		// Remove the server-side injected CSS.

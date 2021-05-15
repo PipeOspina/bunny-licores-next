@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, MouseEvent, useState } from 'react';
 import { Avatar, ButtonBase, Checkbox, Dialog, DialogContent, Grow, TableBody as MuiTableBody, TableCell, TableRow, Theme, useMediaQuery, Zoom } from '@material-ui/core';
 import { IProduct } from '@interfaces/Product';
 import { Column } from '@interfaces/Table';
@@ -6,6 +6,7 @@ import { Liquor, WineBar, SportsBar, LocalBar } from '@icons/Liquor';
 import { numberToCOP } from 'utils/converters';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import Link from 'components/Link';
+import { useRouter } from 'next/router';
 
 interface Props {
     products: IProduct[];
@@ -59,8 +60,14 @@ const TableBody: FC<Props> = (props) => {
     const classes = useStyles();
     const theme = useTheme<Theme>();
     const match = useMediaQuery(theme.breakpoints.up('sm'));
+    const router = useRouter();
 
-    const toggleOpenImage = (url?: string) => {
+    const toggleOpenImage = (
+        event: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
+        url?: string,
+    ) => {
+        event.preventDefault();
+        event.stopPropagation();
         if (url) {
             setOpenImage(true);
             setImageURL(url);
@@ -107,6 +114,14 @@ const TableBody: FC<Props> = (props) => {
         setTouchMoving(false);
     }
 
+    const handleClickProduct = (product: IProduct) => {
+        if (!match && checked.length) {
+            onCheck(product)
+        } else {
+            router.push(`productos/${product.barcode}`);
+        }
+    }
+
     return (
         <>
             <MuiTableBody>
@@ -122,6 +137,7 @@ const TableBody: FC<Props> = (props) => {
                                 onTouchMove={() => setTouchMoving(true)}
                                 onTouchEnd={() => handleTouchEnd(product)}
                                 className={classes.row}
+                                onClick={() => handleClickProduct(product)}
                                 hover
                             >
                                 <Grow in={match || checked.length !== 0} unmountOnExit>
@@ -129,30 +145,27 @@ const TableBody: FC<Props> = (props) => {
                                         <Checkbox
                                             color="primary"
                                             checked={checked.includes(product.id)}
-                                            onClick={() => match ? onCheck(product) : null}
+                                            onClick={() => !match ? onCheck(product) : null}
                                         />
                                     </TableCell>
                                 </Grow>
                                 {
                                     columns.map((column) => {
-                                        const value = column.id === 'price'
-                                            ? numberToCOP(product[column.id]).replace('$', '$ ')
+                                        const value = column.id.includes('Price')
+                                            ? numberToCOP(product[column.id])
                                             : product[column.id];
                                         return (
                                             <TableCell
                                                 align={column.align}
                                                 key={`PRODUCTS-TABLE-CELL-${product.id.toUpperCase()}-${column.id.toUpperCase()}`}
-                                                className={column.id === 'price' ? classes.noWrap : ''}
+                                                className={column.id.includes('Price') ? classes.noWrap : ''}
                                             >
                                                 {
                                                     column.id === 'image'
                                                         ? (
                                                             <ButtonBase
                                                                 className={classes.avatarButton}
-                                                                onClick={() => {
-                                                                    console.log('clicked (?)');
-                                                                    toggleOpenImage(product.image)
-                                                                }}
+                                                                onClick={(e) => toggleOpenImage(e, product.image)}
                                                             >
                                                                 <Avatar src={value} className={classes.avatar}>
                                                                     <Icon />

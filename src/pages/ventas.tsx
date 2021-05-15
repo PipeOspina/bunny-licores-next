@@ -30,7 +30,11 @@ const Ventas: FC = () => {
                     <Table>
                         <TableHead
                             columns={headers}
-                            checkbox
+                            checkbox={{
+                                onClick: () => { },
+                                rowsSelected: 0,
+                                totalRows: 0,
+                            }}
                         />
                     </Table>
                 </TableContainer>

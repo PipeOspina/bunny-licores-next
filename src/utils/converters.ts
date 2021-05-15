@@ -19,7 +19,7 @@ export const userFromFire = (
 }
 
 export const numberToCOP = (value: number) => {
-    return new Intl
+    const formated = new Intl
         .NumberFormat(
             'en-US',
             {
@@ -29,5 +29,6 @@ export const numberToCOP = (value: number) => {
                 minimumFractionDigits: 0,
             },
         )
-        .format(value);
+        .format(Math.abs(value));
+    return formated.splice(1, 0, ' ');
 }
