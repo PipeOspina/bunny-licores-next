@@ -1,4 +1,4 @@
-import firebase from 'firebase';
+import firebase from 'firebase/app';
 import { IProduct, IProductMod } from '@interfaces/Product';
 import { db } from '../firebaseClient';
 import { IUser } from '@interfaces/User';

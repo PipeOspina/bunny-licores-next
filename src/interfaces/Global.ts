@@ -1,5 +1,4 @@
-import firebase from 'firebase';
-import { Observable } from 'redux';
+import firebase from 'firebase/app';
 
 export interface ICommonId {
     id?: string;
