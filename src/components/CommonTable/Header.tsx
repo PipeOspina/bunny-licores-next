@@ -1,20 +1,24 @@
 import { Checkbox, Grow, TableCell, TableHead, TableRow, TableSortLabel, Theme, useMediaQuery } from '@material-ui/core';
 import { useRouter } from 'next/router';
-import React, { FC, MouseEventHandler, ReactNode, useState } from 'react';
+import React, { FC, MouseEventHandler, ReactNode, useState, ReactElement } from 'react';
 
 import { Column } from '@interfaces/Table';
 import { useTheme } from '@material-ui/styles';
+import { IProduct } from '@interfaces/Product';
 
-interface Props {
-    columns: Column[];
+interface Order<T = string> {
+    direction: 'asc' | 'desc';
+    id?: T;
+}
+
+interface Props<T = {}> {
+    columns: Column<T>[];
     checkbox?: {
         totalRows: number;
         rowsSelected: number;
         onClick: () => void;
         header?: ReactNode;
     };
-    orderBy?: string;
-    order?: 'asc' | 'desc';
     classes?: {
         root?: string;
         row?: string;
@@ -22,18 +26,20 @@ interface Props {
         checkboxCell?: string;
         checkbox?: string;
     };
-    handleSortBy?: (id: string) => void;
+    handleSort?: (order: Order<keyof T>) => void;
+    initialSort?: Order<keyof T>;
 }
 
-const Head: FC<Props> = (props) => {
+const Head = <T extends unknown>(props: Props<T>) => {
     const {
         columns,
         checkbox,
         classes,
-        order,
-        orderBy,
-        handleSortBy,
+        handleSort,
+        initialSort,
     } = props;
+
+    const [order, setOrder] = useState<Order<keyof T>>(initialSort || { direction: 'asc' });
 
     const router = useRouter();
     const theme = useTheme<Theme>();
@@ -50,6 +56,10 @@ const Head: FC<Props> = (props) => {
         && checkbox.totalRows !== 0
         && checkbox.rowsSelected < checkbox.totalRows
     )
+
+    const handleSortBy = (id: keyof T) => {
+
+    }
 
     return (
         <TableHead className={classes?.root}>
@@ -78,11 +88,12 @@ const Head: FC<Props> = (props) => {
                         ) : columns
                             .map((column) => {
                                 const { id, component, align, noSort } = column;
+                                const key = `${router.pathname.toUpperCase()}-TABLE-HEADER-${id.toString().toUpperCase()}`
                                 return (
                                     <TableCell
-                                        key={`${router.pathname.toUpperCase()}-TABLE-HEADER-${id.toUpperCase()}`}
+                                        key={key}
                                         align={align || 'left'}
-                                        sortDirection={orderBy === id ? order : false}
+                                        sortDirection={order.id === id ? order.direction : false}
                                         className={classes?.cell}
                                     >
                                         {
@@ -90,8 +101,8 @@ const Head: FC<Props> = (props) => {
                                                 ? component
                                                 : (
                                                     <TableSortLabel
-                                                        active={orderBy === id}
-                                                        direction={orderBy === id ? order : 'asc'}
+                                                        active={order.id === id}
+                                                        direction={order.id === id ? order.direction : 'asc'}
                                                         onClick={() => handleSortBy && handleSortBy(id)}
                                                     >
                                                         {component}

@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 
 interface Props {
     products: IProduct[];
-    columns: Column[];
+    columns: Column<IProduct>[];
     onCheck: (product: IProduct) => void;
     checked: string[];
 }
@@ -46,6 +46,7 @@ const TableBody: FC<Props> = (props) => {
 
     const [openImage, setOpenImage] = useState(false);
     const [imageURL, setImageURL] = useState('');
+    const [isTouch, setIsTouch] = useState(false);
     const [touchMoving, setTouchMoving] = useState(false);
     const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
     const [alreadyChecked, setAlreadyChecked] = useState(false);
@@ -80,13 +81,16 @@ const TableBody: FC<Props> = (props) => {
     }
 
     const handleTouchStart = (product: IProduct) => {
+        setIsTouch(true);
         if (checked.length === 0) {
             setTouchTimer(
                 setTimeout(() => {
                     setTouchMoving((current) => {
                         if (!current) {
-                            onCheck(product);
-                            setAlreadyChecked(true);
+                            setTimeout(() => {
+                                onCheck(product);
+                                setAlreadyChecked(true);
+                            }, 100);
                         }
                         return current;
                     });
@@ -102,20 +106,33 @@ const TableBody: FC<Props> = (props) => {
                 setTouchMoving((current) => {
                     if (!current) {
                         onCheck(product);
+                        setAlreadyChecked(true);
                     }
                     return false;
                 });
             }
         } else {
-            // onClickMethod
+            setTimeout(() => {
+                setAlreadyChecked((current) => {
+                    setTouchMoving((currentMoving) => {
+                        if (!current && !currentMoving) {
+                            console.log(current, currentMoving);
+                            handleClickProduct(product);
+                        }
+                        return false;
+                    });
+                    return current;
+                });
+            }, 10);
         }
-        setAlreadyChecked(false);
+        setTimeout(() => {
+            setAlreadyChecked(false);
+        }, 10);
         setTouchTimer(null);
-        setTouchMoving(false);
     }
 
     const handleClickProduct = (product: IProduct) => {
-        if (!match && checked.length) {
+        if (!isTouch && checked.length) {
             onCheck(product)
         } else {
             router.push(`productos/${product.barcode}`);
@@ -127,7 +144,7 @@ const TableBody: FC<Props> = (props) => {
             <MuiTableBody>
                 {
                     products.map((product) => {
-                        const Icon = icons[Math.floor(Math.random() * icons.length)]
+                        const Icon = icons[product.name.length % icons.length]
                         return (
                             <TableRow
                                 key={`PRODUCTS-TABLE-ROW-${product.id.toUpperCase()}`}
@@ -137,7 +154,7 @@ const TableBody: FC<Props> = (props) => {
                                 onTouchMove={() => setTouchMoving(true)}
                                 onTouchEnd={() => handleTouchEnd(product)}
                                 className={classes.row}
-                                onClick={() => handleClickProduct(product)}
+                                onClick={() => !isTouch ? handleClickProduct(product) : null}
                                 hover
                             >
                                 <Grow in={match || checked.length !== 0} unmountOnExit>
@@ -145,20 +162,27 @@ const TableBody: FC<Props> = (props) => {
                                         <Checkbox
                                             color="primary"
                                             checked={checked.includes(product.id)}
-                                            onClick={() => !match ? onCheck(product) : null}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (!alreadyChecked || !isTouch) {
+                                                    onCheck(product);
+                                                    setAlreadyChecked(true);
+                                                }
+                                            }}
                                         />
                                     </TableCell>
                                 </Grow>
                                 {
                                     columns.map((column) => {
-                                        const value = column.id.includes('Price')
-                                            ? numberToCOP(product[column.id])
+                                        const isPrice = column.id === 'sellPrice' || column.id === 'buyPrice';
+                                        const value = isPrice
+                                            ? numberToCOP(product[column.id] as number)
                                             : product[column.id];
                                         return (
                                             <TableCell
                                                 align={column.align}
                                                 key={`PRODUCTS-TABLE-CELL-${product.id.toUpperCase()}-${column.id.toUpperCase()}`}
-                                                className={column.id.includes('Price') ? classes.noWrap : ''}
+                                                className={isPrice ? classes.noWrap : ''}
                                             >
                                                 {
                                                     column.id === 'image'
@@ -167,7 +191,7 @@ const TableBody: FC<Props> = (props) => {
                                                                 className={classes.avatarButton}
                                                                 onClick={(e) => toggleOpenImage(e, product.image)}
                                                             >
-                                                                <Avatar src={value} className={classes.avatar}>
+                                                                <Avatar src={value?.toString() || ''} className={classes.avatar}>
                                                                     <Icon />
                                                                 </Avatar>
                                                             </ButtonBase>

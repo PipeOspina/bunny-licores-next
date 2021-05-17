@@ -1,13 +1,14 @@
 import { Column } from "@interfaces/Table";
+import { IProduct } from "@interfaces/Product";
 
-type ProductTableHeaders = (Column & { mobile?: boolean, tablet?: boolean })[];
+type ProductTableHeaders = (Column<IProduct> & { mobile?: boolean, tablet?: boolean })[];
 
 export const TableHeaders: ProductTableHeaders = [
     {
         component: 'Foto',
         id: 'image',
         tablet: true,
-        align: 'center'
+        align: 'center',
     }, {
         component: 'Código de Barras',
         id: 'barcode',
@@ -19,19 +20,21 @@ export const TableHeaders: ProductTableHeaders = [
     }, {
         component: 'En Inventario',
         id: 'stockQuantity',
-        align: 'center'
+        align: 'center',
     }, {
         component: 'Vendidos',
         id: 'soldQuantity',
-        align: 'center'
+        align: 'center',
     }, {
         component: 'Precio Compra',
         id: 'buyPrice',
         tablet: true,
+        align: 'right',
     }, {
         component: 'Precio Venta',
         id: 'sellPrice',
         mobile: true,
+        align: 'right',
     },
 ];
 

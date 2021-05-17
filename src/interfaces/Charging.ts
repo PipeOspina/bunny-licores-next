@@ -1,13 +1,15 @@
 export interface IGlobalCharging {
     auth: boolean;
     index: boolean;
-    product: boolean;
+    productTable: boolean;
+    createProduct: boolean;
 }
 
 export const initialGlobalCharging: IGlobalCharging = {
     auth: false,
     index: false,
-    product: false,
+    productTable: false,
+    createProduct: false,
 }
 
 export interface IAuthCharging {
@@ -30,17 +32,24 @@ export const initialIndexCharging: IIndexCharging = {
     redirect: false,
 }
 
-export interface IProductCharging {
-    addProduct: boolean;
+export interface IProductTableCharging {
     getProducts: boolean;
 }
 
-export const initialProductCharging: IProductCharging = {
-    addProduct: false,
+export const initialProductTableCharging: IProductTableCharging = {
     getProducts: false,
+}
+
+export interface ICreateProductCharging {
+    addProduct: boolean;
+}
+
+export const initialCreateProductCharging: ICreateProductCharging = {
+    addProduct: false,
 }
 
 export type TCharging = IGlobalCharging
     | IAuthCharging
     | IIndexCharging
-    | IProductCharging;
+    | IProductTableCharging
+    | ICreateProductCharging;

@@ -1,7 +1,6 @@
 import { useCharging } from '@hooks/charging';
-import { IIndexCharging, IProductCharging } from '@interfaces/Charging';
-import { Avatar, Button, Checkbox, Paper, Table, TableCell, TableContainer, TableRow, Theme, useMediaQuery } from '@material-ui/core';
-import Link from 'components/Link';
+import { IIndexCharging, IProductTableCharging } from '@interfaces/Charging';
+import { IconButton, Paper, Table, TableContainer, Theme, Typography, useMediaQuery } from '@material-ui/core';
 import Title from 'components/Title';
 import React, { useEffect, useState } from 'react';
 import CreateProduct from 'components/Product/CreateProduct';
@@ -13,6 +12,8 @@ import { IProductSubscriptions } from '@interfaces/Subscription';
 import { getProducts } from '@services/firestore/product';
 import { IProduct } from '@interfaces/Product';
 import TableBody from 'components/Product/TableBody';
+import { cssVariables } from '@styles/theme';
+import { Liquor } from '@icons/Liquor';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -21,15 +22,26 @@ const useStyles = makeStyles((theme: Theme) =>
             justifyContent: 'space-between',
             alignItems: 'center',
         },
+        noProducts: {
+            height: `calc(${cssVariables(theme).containerHeight} - 105px)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+        },
+        newProductLink: {
+            cursor: 'pointer',
+        }
     })
 );
 
 const Products = () => {
     const [products, setProducts] = useState<IProduct[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<IProduct[]>([]);
+    const [openCreate, setOpenCreate] = useState(false);
 
     const { setCharging: indexCharging } = useCharging<IIndexCharging>('index');
-    const { setCharging } = useCharging<IProductCharging>('product');
+    const { setCharging } = useCharging<IProductTableCharging>('productTable');
     const classes = useStyles();
     const theme = useTheme<Theme>();
     const matchMobile = useMediaQuery(theme.breakpoints.down('xs'));
@@ -52,7 +64,8 @@ const Products = () => {
                     next: (res) => {
                         setProducts(res.data);
                         setCharging('getProducts', false);
-                    }
+                    },
+                    error: console.log,
                 })
         )
     }, []);
@@ -90,22 +103,46 @@ const Products = () => {
                 <Title>Productos</Title>
                 <CreateProduct />
             </div>
-            <Paper>
-                <TableContainer>
-                    <Table>
-                        <TableHeah
-                            columns={headers}
-                            checkbox={checkboxProps}
-                        />
-                        <TableBody
-                            columns={headers}
-                            products={products}
-                            onCheck={handleSelectRow}
-                            checked={selectedIds}
-                        />
-                    </Table>
-                </TableContainer>
-            </Paper>
+            {
+                products.length
+                    ? (
+                        <Paper>
+                            <TableContainer>
+                                <Table>
+                                    <TableHeah<IProduct>
+                                        columns={headers}
+                                        checkbox={checkboxProps}
+                                    />
+                                    <TableBody
+                                        columns={headers}
+                                        products={products}
+                                        onCheck={handleSelectRow}
+                                        checked={selectedIds}
+                                    />
+                                </Table>
+                            </TableContainer>
+                        </Paper>
+                    ) : (
+                        <div className={classes.noProducts}>
+                            <IconButton
+                                color="primary"
+                                onClick={() => setOpenCreate(true)}
+                            >
+                                <Liquor />
+                            </IconButton>
+                            <Typography>No existen productos para mostrar</Typography>
+                            <Typography
+                                variant="subtitle2"
+                                color="primary"
+                                className={classes.newProductLink}
+                                onClick={() => setOpenCreate(true)}
+                            >
+                                Haz click aquí para crear uno
+                            </Typography>
+                        </div>
+                    )
+            }
+            <CreateProduct hideButton={{ open: openCreate, setOpen: setOpenCreate }} />
         </>
     );
 }

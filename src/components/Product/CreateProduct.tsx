@@ -1,6 +1,6 @@
 import { initialProduct, IProduct, IProductModRef } from '@interfaces/Product';
-import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grow, IconButton, TextField, Theme, Typography, useMediaQuery, Zoom } from '@material-ui/core';
-import React, { ChangeEventHandler, FC, KeyboardEventHandler, useState } from 'react';
+import { Avatar, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Grow, IconButton, TextField, Theme, Typography, useMediaQuery } from '@material-ui/core';
+import React, { ChangeEventHandler, Dispatch, FC, KeyboardEventHandler, useState } from 'react';
 import NumberFormat from 'components/CustomNumberFormat';
 import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
 import { Close, PhotoCamera } from '@material-ui/icons';
@@ -10,11 +10,14 @@ import { addProduct } from '@firestore/product';
 import { useSubscription } from '@hooks/subscription';
 import { IProductSubscriptions } from '@interfaces/Subscription';
 import { useCharging } from '@hooks/charging';
-import { IProductCharging } from '@interfaces/Charging';
+import { ICreateProductCharging } from '@interfaces/Charging';
 import { numberToCOP } from 'utils/converters';
 
 interface Props {
-
+    hideButton?: {
+        open: boolean;
+        setOpen: Dispatch<React.SetStateAction<boolean>>;
+    };
 }
 
 type Errors = {
@@ -61,21 +64,27 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-const CreateProduct: FC<Props> = ({ }) => {
-    const [open, setOpen] = useState(false);
+const CreateProduct: FC<Props> = ({ hideButton }) => {
+    const [open, setOpen] = hideButton
+        ? [hideButton.open, hideButton.setOpen]
+        : useState(false);
     const [product, setProduct] = useState<IProduct>(initialProduct);
     const [errors, setErrors] = useState<Errors>({});
     const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+    const [haveDeposit, setHaveDeposit] = useState(false);
 
     const classes = useStyles();
     const theme = useTheme<Theme>();
     const matches = useMediaQuery(theme.breakpoints.down('xs'));
     const dispatch = useDispatch();
     const { setSubscribtion, unsubscribe } = useSubscription<IProductSubscriptions>();
-    const { setCharging } = useCharging<IProductCharging>('product');
+    const { setCharging } = useCharging<ICreateProductCharging>('createProduct');
     const user = useSelector(({ user }) => user);
 
-    const profit = numberToCOP(product.sellPrice - product.buyPrice)
+    const sell = product.sellPrice + (product.sellDeposit || 0);
+    const buy = product.buyPrice + (product.buyDeposit || 0);
+
+    const profit = numberToCOP(sell - buy);
 
     const toggleOpen = () => {
         setOpen((current) => {
@@ -128,14 +137,8 @@ const CreateProduct: FC<Props> = ({ }) => {
         setCharging('addProduct');
         const handlers = {
             getSubscribtion: (sub) => setSubscribtion('uploadPhoto', sub),
-            onError: (err) => {
-                console.log(err);
-                setCharging('addProduct', false);
-            },
-            onComplete: () => {
-                toggleOpen();
-                setCharging('addProduct', false);
-            },
+            onError: console.log,
+            onComplete: () => toggleOpen(),
         }
         addProduct(
             product,
@@ -167,20 +170,32 @@ const CreateProduct: FC<Props> = ({ }) => {
     }
 
     const handleKeyPressed: KeyboardEventHandler<HTMLDivElement> = (e) => {
-        if (e.key === 'Enter') {
-            handleCreate();
+        const type = (e.target as any).type || '';
+
+        if (type === 'text' && e.key === 'Enter') {
+            const nextInput = (e.target as any).getAttribute('next-input') || 'Enter';
+            if (matches && nextInput !== 'Enter') {
+                const nextElement = document.getElementById(nextInput);
+                nextElement?.focus();
+            } else {
+                handleCreate();
+            }
         }
     }
 
     return (
         <>
-            <Button
-                onClick={toggleOpen}
-                color="primary"
-                variant="contained"
-            >
-                Crear Producto
-            </Button>
+            {
+                !hideButton && (
+                    <Button
+                        onClick={toggleOpen}
+                        color="primary"
+                        variant="contained"
+                    >
+                        Crear Producto
+                    </Button>
+                )
+            }
             <Dialog
                 onClose={toggleOpen}
                 open={open}
@@ -210,6 +225,10 @@ const CreateProduct: FC<Props> = ({ }) => {
                             InputLabelProps={{
                                 shrink: true,
                             }}
+                            inputProps={{
+                                id: 'create-product-dialog-barcode-input',
+                                ['next-input']: 'create-product-dialog-name-input',
+                            }}
                             error={!!errors.barcode}
                             helperText={errors.barcode}
                             autoFocus
@@ -222,6 +241,10 @@ const CreateProduct: FC<Props> = ({ }) => {
                             onChange={({ target }) => updateProduct('name', target.value)}
                             InputLabelProps={{
                                 shrink: true,
+                            }}
+                            inputProps={{
+                                id: 'create-product-dialog-name-input',
+                                ['next-input']: 'create-product-dialog-buy-price-input',
                             }}
                             error={!!errors.name}
                             helperText={errors.name}
@@ -239,6 +262,10 @@ const CreateProduct: FC<Props> = ({ }) => {
                                     const value = Number(target.value)
                                     const price = isNaN(value) ? 0 : value;
                                     updateProduct('buyPrice', Number(price))
+                                }}
+                                inputProps={{
+                                    id: 'create-product-dialog-buy-price-input',
+                                    ['next-input']: 'create-product-dialog-sell-price-input',
                                 }}
                                 InputLabelProps={{
                                     shrink: true,
@@ -262,11 +289,72 @@ const CreateProduct: FC<Props> = ({ }) => {
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
+                                inputProps={{
+                                    id: 'create-product-dialog-sell-price-input',
+                                    ['next-input']: haveDeposit
+                                        ? 'create-product-dialog-buy-deposit-input'
+                                        : 'Enter',
+                                }}
                                 error={!!errors.sellPrice}
                                 helperText={errors.sellPrice}
                                 required
                             />
                         </div>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={haveDeposit}
+                                    onChange={() => setHaveDeposit((current) => !current)}
+                                    color="primary"
+                                />
+                            }
+                            label="Producto con depósito"
+                        />
+                        <Collapse in={haveDeposit}>
+                            <div className={matches ? classes.formColumn : classes.doubleInput}>
+                                <TextField
+                                    value={product.buyDeposit || ''}
+                                    placeholder="Deposito del Distribuidor"
+                                    label="Distribuidor"
+                                    InputProps={{
+                                        inputComponent: NumberFormat as any
+                                    }}
+                                    onChange={({ target }) => {
+                                        const value = Number(target.value)
+                                        const price = isNaN(value) ? 0 : value;
+                                        updateProduct('buyDeposit', Number(price))
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    inputProps={{
+                                        id: 'create-product-dialog-buy-deposit-input',
+                                        ['next-input']: 'create-product-dialog-sell-deposit-input',
+                                    }}
+                                    required
+                                />
+                                <TextField
+                                    value={product.sellDeposit || ''}
+                                    placeholder="Deposito del Cliente"
+                                    label="Cliente"
+                                    InputProps={{
+                                        inputComponent: NumberFormat as any
+                                    }}
+                                    onChange={({ target }) => {
+                                        const value = Number(target.value)
+                                        const price = isNaN(value) ? 0 : value;
+                                        updateProduct('sellDeposit', Number(price))
+                                    }}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    inputProps={{
+                                        id: 'create-product-dialog-sell-deposit-input',
+                                    }}
+                                    required
+                                />
+                            </div>
+                        </Collapse>
                         <Grow in={!!(product.sellPrice && product.buyPrice)}>
                             <Typography color="primary">
                                 {product.sellPrice >= product.buyPrice ? 'Ganancia' : 'Perdida'} de {profit}

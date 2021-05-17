@@ -6,12 +6,13 @@ export interface IProduct extends ICommonId {
     name: string;
     image?: string;
     soldQuantity: number;
-    barcode?: string;
+    barcode: string;
     sellPrice: number;
     buyPrice: number;
     stockQuantity: number;
     lastModification?: IProductModRef;
-    defaultDeposit?: number;
+    buyDeposit?: number;
+    sellDeposit?: number;
     ref?: ICommonReference<IProduct>;
 }
 
@@ -39,8 +40,6 @@ export const initialProductMod: IProductMod = {
 
 export const initialProduct: IProduct = {
     barcode: '',
-    defaultDeposit: 0,
-    image: '',
     name: '',
     sellPrice: 0,
     buyPrice: 0,

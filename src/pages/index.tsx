@@ -11,7 +11,7 @@ const useStyles = makeStyles(() =>
     createStyles({
         content: {
             display: 'flex',
-            height: '100%',
+            height: 'inherit',
             width: '100%',
             justifyContent: 'center',
             alignItems: 'center',

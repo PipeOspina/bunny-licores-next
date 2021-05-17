@@ -20,6 +20,10 @@ export type TPartial<T> = {
     [P in keyof T]?: T[P];
 };
 
+export type TTypeMap<K, T> = {
+    [P in keyof K]?: T;
+};
+
 export interface IStringMap<T> {
     [key: string]: T
 }

@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 
-export interface Column {
+export interface Column<T> {
     component: ReactNode;
-    id: string;
+    id: keyof T;
     noSort?: boolean;
     align?: 'left' | 'center' | 'right' | 'justify' | 'inherit';
 }

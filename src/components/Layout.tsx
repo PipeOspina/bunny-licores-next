@@ -9,6 +9,7 @@ import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { removeAlert, updateAlert } from '@actions/alert';
 import Toolbar from './Toolbar';
+import { cssVariables } from '@styles/theme';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -16,13 +17,14 @@ const useStyles = makeStyles((theme: Theme) =>
             flexGrow: 1,
         },
         container: {
-            height: 'calc(100vh - 64px)'
+            minHeight: cssVariables(theme).containerHeight,
+            paddingBottom: theme.spacing(3),
         },
         noSesionMsg: {
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
-            height: '100%',
+            minHeight: 'inherit',
             alignItems: 'center',
             justifyContent: 'center',
         },
