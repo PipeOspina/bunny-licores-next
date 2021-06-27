@@ -1,6 +1,6 @@
 import { useCharging } from '@hooks/charging';
 import { IIndexCharging, IProductTableCharging } from '@interfaces/Charging';
-import { IconButton, Paper, Table, TableContainer, Theme, Typography, useMediaQuery } from '@material-ui/core';
+import { IconButton, Paper, Table, TableContainer, Theme, Typography, useMediaQuery, TablePagination } from '@material-ui/core';
 import Title from 'components/Title';
 import React, { useEffect, useState } from 'react';
 import CreateProduct from 'components/Product/CreateProduct';
@@ -11,9 +11,11 @@ import { useSubscription } from '@hooks/subscription';
 import { IProductSubscriptions } from '@interfaces/Subscription';
 import { getProducts } from '@services/firestore/product';
 import { IProduct } from '@interfaces/Product';
+import { initialPagination, Order, Pagination } from '@interfaces/Table';
 import TableBody from 'components/Product/TableBody';
 import { cssVariables } from '@styles/theme';
 import { Liquor } from '@icons/Liquor';
+import { sortProducts } from '@utils/functions';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -39,6 +41,8 @@ const Products = () => {
     const [products, setProducts] = useState<IProduct[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<IProduct[]>([]);
     const [openCreate, setOpenCreate] = useState(false);
+    const [order, setOrder] = useState<Order<keyof IProduct>>({ direction: 'asc' });
+    const [pagination, setPagination] = useState<Pagination>(initialPagination);
 
     const { setCharging: indexCharging } = useCharging<IIndexCharging>('index');
     const { setCharging } = useCharging<IProductTableCharging>('productTable');
@@ -53,6 +57,27 @@ const Products = () => {
             ? TableHeaders.filter((header) => header.tablet || header.mobile)
             : TableHeaders;
     const selectedIds = selectedProducts.map((prod) => prod.id);
+
+    const sortedProducts = sortProducts(products, order);
+    const paginatedProducts = sortedProducts.slice(
+        pagination.page * pagination.rowsPerPage,
+        (pagination.page + 1) * pagination.rowsPerPage,
+    )
+
+    const toggleAllChecked = () => {
+        setSelectedProducts((
+            selectedProducts.length === 0
+                ? products
+                : []
+        ));
+    }
+
+    const checkboxProps = {
+        onClick: toggleAllChecked,
+        rowsSelected: selectedProducts.length,
+        totalRows: products.length,
+        header: 'holi :p'
+    }
 
     useEffect(() => {
         indexCharging('redirect', false)
@@ -82,20 +107,12 @@ const Products = () => {
         });
     }
 
-    const toggleAllChecked = () => {
-        setSelectedProducts((
-            selectedProducts.length === 0
-                ? products
-                : []
-        ));
-    }
-
-    const checkboxProps = {
-        onClick: toggleAllChecked,
-        rowsSelected: selectedProducts.length,
-        totalRows: products.length,
-        header: 'holi :p'
-    }
+    const updatePagination = (key: keyof Pagination, value: number | number[]) => {
+        setPagination((current) => ({
+            ...current,
+            [key]: value,
+        }));
+    };
 
     return (
         <>
@@ -104,7 +121,7 @@ const Products = () => {
                 <CreateProduct products={products} />
             </div>
             {
-                products.length
+                sortedProducts.length
                     ? (
                         <Paper>
                             <TableContainer>
@@ -112,15 +129,31 @@ const Products = () => {
                                     <TableHeah<IProduct>
                                         columns={headers}
                                         checkbox={checkboxProps}
+                                        order={order}
+                                        handleSort={(newOrder) => setOrder(newOrder)}
                                     />
                                     <TableBody
                                         columns={headers}
-                                        products={products}
+                                        products={paginatedProducts}
                                         onCheck={handleSelectRow}
                                         checked={selectedIds}
                                     />
                                 </Table>
                             </TableContainer>
+                            <TablePagination
+                                component="div"
+                                count={sortedProducts.length}
+                                page={pagination.page}
+                                onChangePage={(_e, page) => updatePagination('page', page)}
+                                rowsPerPage={pagination.rowsPerPage}
+                                onChangeRowsPerPage={({ target }) => updatePagination(
+                                    'rowsPerPage',
+                                    isNaN(parseInt(target.value))
+                                        ? initialPagination.rowsPerPage
+                                        : parseInt(target.value),
+                                )}
+                                rowsPerPageOptions={pagination.rowsPerPageOptions}
+                            />
                         </Paper>
                     ) : (
                         <div className={classes.noProducts}>

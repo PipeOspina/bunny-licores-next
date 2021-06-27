@@ -1,4 +1,4 @@
-import { initialProduct, IProduct, IProductModRef } from '@interfaces/Product';
+import { initialProduct, IProduct, IProductModRef, IRelatedProduct } from '@interfaces/Product';
 import { Avatar, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Grow, IconButton, TextField, Theme, Typography, useMediaQuery, Chip } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import React, { ChangeEventHandler, Dispatch, FC, KeyboardEventHandler, useEffect, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import { useCharging } from '@hooks/charging';
 import { ICreateProductCharging } from '@interfaces/Charging';
 import { numberToCOP } from 'utils/converters';
 import { IProductImage } from '@interfaces/Image';
+import { convertProductToRelated } from '@utils/functions';
 
 interface Props {
     hideButton?: {
@@ -40,7 +41,21 @@ const useStyles = makeStyles((theme: Theme) =>
                 },
                 display: 'flex',
                 alignItems: 'center',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
             }
+        },
+        titleLeft: {
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+        },
+        titleLabel: {
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
         },
         container: {
             display: 'flex',
@@ -138,7 +153,7 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
 
     const updateProduct = (
         key: keyof IProduct,
-        value: string | number | IProductModRef | IProductImage | (string | IProduct)[]
+        value: string | number | IProductModRef | IProductImage | (string | IRelatedProduct)[]
     ) => {
         setErrors((current) => ({ ...current, [key]: undefined }))
         if (value !== undefined) {
@@ -258,7 +273,11 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
         _e: React.ChangeEvent<{}>,
         value: (string | IProduct)[]
     ) => {
-        updateProduct('relatedProducts', value);
+        updateProduct('relatedProducts', value.map((related) => {
+            return typeof related === 'string'
+                ? related
+                : convertProductToRelated(related);
+        }));
     };
 
     useEffect(() => {
@@ -282,6 +301,13 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
         }
     }, [uploadedImages]);
 
+    useEffect(() => {
+        if (!haveDeposit) {
+            updateProduct('sellDeposit', undefined);
+            updateProduct('buyDeposit', undefined);
+        }
+    }, [haveDeposit]);
+
     return (
         <>
             {
@@ -302,7 +328,7 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                 fullWidth
             >
                 <DialogTitle className={classes.title}>
-                    <div>
+                    <div className={classes.titleLeft}>
                         <IconButton
                             onClick={() => {
                                 if (product.images?.default.publicURL) {
@@ -316,7 +342,9 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                                 <PhotoCamera />
                             </Avatar>
                         </IconButton>
-                        Crear Producto{product.name ? ':' : ''} {product.name}
+                        <div className={classes.titleLabel}>
+                            Crear Producto{product.name ? ':' : ''} {product.name}
+                        </div>
                     </div>
                     <IconButton className={classes.closeButton} onClick={closeCreateProduct}>
                         <Close />
@@ -378,77 +406,81 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                                         rowsMax={3}
                                         rows={3}
                                     />
-                                    <Autocomplete
-                                        options={products}
-                                        disableCloseOnSelect
-                                        getOptionLabel={({ name }: IProduct) => name}
-                                        getOptionSelected={(option, value) => (
-                                            (
-                                                typeof option !== 'string'
-                                                && option.id
-                                            ) === (
-                                                typeof value !== 'string'
-                                                && value.id
-                                            )
-                                        )}
-                                        limitTags={2}
-                                        onChange={handleRelated}
-                                        renderTags={(tagValue, getTagProps) =>
-                                            tagValue.map(({ images, name }: IProduct, index) => (
-                                                <Chip
-                                                    {...getTagProps({ index })}
-                                                    label={name}
-                                                    avatar={images ? <Avatar src={images.default?.publicURL} /> : undefined}
-                                                    className={classes.chip}
-                                                />
-                                            ))
-                                        }
-                                        noOptionsText="Producto no encontrado"
-                                        renderOption={({ name, images }: IProduct, { selected }) => (
-                                            <React.Fragment>
-                                                {
-                                                    images
-                                                        ? (
-                                                            <div className={classes.imageCheckContainer}>
-                                                                <img
-                                                                    src={images.default?.publicURL}
-                                                                    height="24"
-                                                                    width="24"
-                                                                    className={classes.imageCheck}
-                                                                />
-                                                                {
-                                                                    selected && (
-                                                                        <span className={classes.imageSpan}>
-                                                                            <Done fontSize="small" />
-                                                                        </span>
-                                                                    )
-                                                                }
-                                                            </div>
-                                                        ) : (
-                                                            <Checkbox checked={selected} color="primary" />
-                                                        )
+                                    {
+                                        products.length !== 0 && (
+                                            <Autocomplete
+                                                options={products}
+                                                disableCloseOnSelect
+                                                getOptionLabel={({ name }: IProduct) => name}
+                                                getOptionSelected={(option, value) => (
+                                                    (
+                                                        typeof option !== 'string'
+                                                        && option.id
+                                                    ) === (
+                                                        typeof value !== 'string'
+                                                        && value.id
+                                                    )
+                                                )}
+                                                limitTags={2}
+                                                onChange={handleRelated}
+                                                renderTags={(tagValue, getTagProps) =>
+                                                    tagValue.map(({ images, name }: IProduct, index) => (
+                                                        <Chip
+                                                            {...getTagProps({ index })}
+                                                            label={name}
+                                                            avatar={images ? <Avatar src={images.default?.publicURL} /> : undefined}
+                                                            className={classes.chip}
+                                                        />
+                                                    ))
                                                 }
-                                                {name}
-                                            </React.Fragment>
-                                        )}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                label="Productos relacionados"
-                                                placeholder="Productos relacionados"
-                                                InputLabelProps={{
-                                                    ...params.InputLabelProps,
-                                                    shrink: true,
-                                                }}
-                                                inputProps={{
-                                                    ...params.inputProps,
-                                                    id: 'create-product-dialog-related-input',
-                                                    ['next-input']: 'create-product-dialog-buy-price-input'
-                                                }}
+                                                noOptionsText="Producto no encontrado"
+                                                renderOption={({ name, images }: IProduct, { selected }) => (
+                                                    <React.Fragment>
+                                                        {
+                                                            images
+                                                                ? (
+                                                                    <div className={classes.imageCheckContainer}>
+                                                                        <img
+                                                                            src={images.default?.publicURL}
+                                                                            height="24"
+                                                                            width="24"
+                                                                            className={classes.imageCheck}
+                                                                        />
+                                                                        {
+                                                                            selected && (
+                                                                                <span className={classes.imageSpan}>
+                                                                                    <Done fontSize="small" />
+                                                                                </span>
+                                                                            )
+                                                                        }
+                                                                    </div>
+                                                                ) : (
+                                                                    <Checkbox checked={selected} color="primary" />
+                                                                )
+                                                        }
+                                                        {name}
+                                                    </React.Fragment>
+                                                )}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        label="Productos relacionados"
+                                                        placeholder="Productos relacionados"
+                                                        InputLabelProps={{
+                                                            ...params.InputLabelProps,
+                                                            shrink: true,
+                                                        }}
+                                                        inputProps={{
+                                                            ...params.inputProps,
+                                                            id: 'create-product-dialog-related-input',
+                                                            ['next-input']: 'create-product-dialog-buy-price-input'
+                                                        }}
+                                                    />
+                                                )}
+                                                multiple
                                             />
-                                        )}
-                                        multiple
-                                    />
+                                        )
+                                    }
                                 </div>
                             )
                         }

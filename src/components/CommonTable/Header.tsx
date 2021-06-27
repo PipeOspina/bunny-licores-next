@@ -1,15 +1,9 @@
 import { Checkbox, Grow, TableCell, TableHead, TableRow, TableSortLabel, Theme, useMediaQuery } from '@material-ui/core';
 import { useRouter } from 'next/router';
-import React, { FC, MouseEventHandler, ReactNode, useState, ReactElement } from 'react';
+import React, { ReactNode } from 'react';
 
-import { Column } from '@interfaces/Table';
+import { Column, Order } from '@interfaces/Table';
 import { useTheme } from '@material-ui/styles';
-import { IProduct } from '@interfaces/Product';
-
-interface Order<T = string> {
-    direction: 'asc' | 'desc';
-    id?: T;
-}
 
 interface Props<T = {}> {
     columns: Column<T>[];
@@ -26,8 +20,8 @@ interface Props<T = {}> {
         checkboxCell?: string;
         checkbox?: string;
     };
+    order?: Order<keyof T>;
     handleSort?: (order: Order<keyof T>) => void;
-    initialSort?: Order<keyof T>;
 }
 
 const Head = <T extends unknown>(props: Props<T>) => {
@@ -35,11 +29,9 @@ const Head = <T extends unknown>(props: Props<T>) => {
         columns,
         checkbox,
         classes,
+        order,
         handleSort,
-        initialSort,
     } = props;
-
-    const [order, setOrder] = useState<Order<keyof T>>(initialSort || { direction: 'asc' });
 
     const router = useRouter();
     const theme = useTheme<Theme>();
@@ -58,7 +50,20 @@ const Head = <T extends unknown>(props: Props<T>) => {
     )
 
     const handleSortBy = (id: keyof T) => {
+        if (order) {
+            const newOrder: Order<keyof T> = {
+                direction: order.id === id
+                    ? order.direction === 'desc'
+                        ? 'asc'
+                        : 'desc'
+                    : 'desc',
+                id: order.id === id && order.direction === 'asc'
+                    ? undefined
+                    : id,
+            }
 
+            handleSort && handleSort(newOrder);
+        }
     }
 
     return (
@@ -93,7 +98,7 @@ const Head = <T extends unknown>(props: Props<T>) => {
                                     <TableCell
                                         key={key}
                                         align={align || 'left'}
-                                        sortDirection={order.id === id ? order.direction : false}
+                                        sortDirection={order?.id === id ? order?.direction : false}
                                         className={classes?.cell}
                                     >
                                         {
@@ -101,8 +106,8 @@ const Head = <T extends unknown>(props: Props<T>) => {
                                                 ? component
                                                 : (
                                                     <TableSortLabel
-                                                        active={order.id === id}
-                                                        direction={order.id === id ? order.direction : 'asc'}
+                                                        active={order?.id === id}
+                                                        direction={order?.id === id ? order?.direction : 'desc'}
                                                         onClick={() => handleSortBy && handleSortBy(id)}
                                                     >
                                                         {component}

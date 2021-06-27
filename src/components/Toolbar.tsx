@@ -1,7 +1,8 @@
+import React from 'react';
 import { useAuth } from "@hooks/auth";
 import { useSelector } from "@hooks/redux";
 import { Logout } from "@icons";
-import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography, useMediaQuery } from "@material-ui/core";
+import { AppBar, Avatar, Button, Drawer, Hidden, IconButton, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem, Theme, Toolbar, Typography, useMediaQuery, useScrollTrigger } from "@material-ui/core";
 import { Menu as MenuIcon } from '@material-ui/icons';
 import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
 import Link from "next/link";
@@ -97,7 +98,7 @@ const CustomToolbar: FC = () => {
 
     return (
         <>
-            <AppBar position="static">
+            <AppBar position="sticky">
                 <Toolbar>
                     {
                         user && (

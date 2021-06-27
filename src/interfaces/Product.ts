@@ -1,8 +1,9 @@
+import firebase from 'firebase';
 import { ModificationTypes } from '@constants/product';
-import { ICommonId, TPartial, ICommonReference } from '@interfaces/Global';
+import { ICommonId, TPartial, ICommonReference, TCommonReference } from '@interfaces/Global';
 import { IUserRef, initialUserRef } from '@interfaces/User';
 
-import { IProductImage } from './Image';
+import { IProductImage, IImage } from './Image';
 
 export interface IProduct extends ICommonId {
     name: string;
@@ -16,8 +17,37 @@ export interface IProduct extends ICommonId {
     buyDeposit?: number;
     sellDeposit?: number;
     description?: string;
-    ref?: ICommonReference<IProduct>;
-    relatedProducts?: IProduct[];
+    ref?: TCommonReference<IFireProduct>;
+    relatedProducts?: IRelatedProduct[];
+    creation?: IProductModRef;
+}
+
+export interface IFireProduct extends ICommonId {
+    name: string;
+    images?: IProductImage;
+    soldQuantity: number;
+    barcode: string;
+    sellPrice: number;
+    buyPrice: number;
+    stockQuantity: number;
+    lastModification?: IFireProductModRef;
+    buyDeposit?: number;
+    sellDeposit?: number;
+    description?: string;
+    ref?: TCommonReference<IFireProduct>;
+    relatedProducts?: IFireProduct[];
+    creation?: IFireProductModRef;
+}
+
+export interface IRelatedProduct {
+    name: string;
+    defaultImage?: IImage;
+    barcode: string;
+    sellPrice: number;
+    stockQuantity: number;
+    sellDeposit?: number;
+    description?: string;
+    ref?: TCommonReference<IFireProduct>;
 }
 
 export interface IProductMod extends ICommonId {
@@ -27,8 +57,21 @@ export interface IProductMod extends ICommonId {
     type: ModificationTypes;
 }
 
+export interface IFireProductMod extends ICommonId {
+    date: firebase.firestore.Timestamp;
+    user: IUserRef;
+    fields: TPartial<IProduct>;
+    type: ModificationTypes;
+}
+
 export interface IProductModRef extends ICommonReference<IProductMod> {
     type: ModificationTypes,
+    date: Date;
+}
+
+export interface IFireProductModRef extends ICommonReference<IFireProductMod> {
+    type: ModificationTypes,
+    date: firebase.firestore.Timestamp;
 }
 
 export interface IProductRef extends ICommonReference<IProduct> {

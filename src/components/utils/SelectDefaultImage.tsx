@@ -359,10 +359,10 @@ const SelectDefaultImage = ({
                                         className={classes.imageInBar}
                                         onClick={() => setImageIndex(i)}
                                         onDoubleClick={() => setSelectedImage(i)}
+                                        key={`IMAGES-VERTICAL-SCROLL-${path}-${i}`}
                                     >
                                         <img
                                             src={path}
-                                            key={`IMAGES-VERTICAL-SCROLL-${path}-${i}`}
                                             id={`IMAGES-VERTICAL-SCROLL-${path}-${i}`}
                                             className={`
                                                 ${classes.image}

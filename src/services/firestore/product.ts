@@ -1,5 +1,7 @@
+import { convertProductToRelated } from './../../utils/functions';
+import { IFireProductModRef, IRelatedProduct } from './../../interfaces/Product';
 import firebase from 'firebase/app';
-import { IProduct, IProductMod } from '@interfaces/Product';
+import { IFireProduct, IProductMod, IProduct, IProductModRef } from '@interfaces/Product';
 import { db } from '../firebaseClient';
 import { IUser } from '@interfaces/User';
 import { ModificationTypes } from '@constants/product';
@@ -8,8 +10,8 @@ import { uploadImage } from '@services/storage/product';
 import { Observable, Subscription, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-type ProductRef = TCommonReference<IProduct>;
-type QuerySnapshot = TCommonQuerySnapshot<IProduct>;
+type ProductRef<T = IFireProduct> = TCommonReference<T>;
+type QuerySnapshot<T = IFireProduct> = TCommonQuerySnapshot<T>;
 
 const products = db.collection('Products');
 
@@ -62,7 +64,10 @@ export const addProduct = async (
         type: mod.type,
         id: mod.id,
         ref: modRef,
+        date: mod.date,
     };
+
+    product.creation = product.lastModification;
 
     if (images?.all.length) {
         await new Promise((resolve) => {
@@ -89,9 +94,14 @@ export const addProduct = async (
                         (_i, index) => index === images.defaultIndex,
                     );
 
+                    if (!product.images?.default) {
+                        delete product.images;
+                    }
+
                     await docRef.set(product);
                     await modRef.set(mod);
                     handlers.onComplete && handlers.onComplete();
+
                     resolve(null);
                 },
                 error: handlers.onError,
@@ -106,6 +116,29 @@ export const addProduct = async (
         await modRef.set(mod);
         handlers.onComplete && handlers.onComplete();
     }
+
+    await Promise.all(
+        product.relatedProducts?.map(async (related) => {
+            const relatedRef = await related.ref.get();
+            const relatedData = relatedRef.data();
+            const productRelated = convertProductToRelated({
+                ...product,
+                ref: docRef,
+            });
+
+            await related
+                .ref
+                .update({
+                    relatedProducts: relatedData.relatedProducts
+                        ? [
+                            ...relatedData.relatedProducts,
+                            productRelated,
+                        ]
+                        : [productRelated],
+                });
+        })
+        || []
+    );
 
     return docRef;
 }
@@ -125,7 +158,15 @@ export const getProducts = () => {
                     .docs
                     .map((doc) => {
                         const data = doc.data();
-                        return { ...data, ref: doc.ref };
+                        const lastModification = {
+                            ...data.lastModification,
+                            date: data.lastModification.date.toDate(),
+                        };
+                        const creation = {
+                            ...data.creation,
+                            date: data.creation.date.toDate(),
+                        };
+                        return { ...data, ref: doc.ref, lastModification, creation };
                     })
                 return { ...res, data: prods }
             }),
