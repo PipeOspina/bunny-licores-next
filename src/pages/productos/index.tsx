@@ -101,7 +101,7 @@ const Products = () => {
         <>
             <div className={classes.head}>
                 <Title>Productos</Title>
-                <CreateProduct />
+                <CreateProduct products={products} />
             </div>
             {
                 products.length
@@ -142,7 +142,10 @@ const Products = () => {
                         </div>
                     )
             }
-            <CreateProduct hideButton={{ open: openCreate, setOpen: setOpenCreate }} />
+            <CreateProduct
+                hideButton={{ open: openCreate, setOpen: setOpenCreate }}
+                products={products}
+            />
         </>
     );
 }

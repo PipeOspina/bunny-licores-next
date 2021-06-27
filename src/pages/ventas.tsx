@@ -28,7 +28,7 @@ const Ventas: FC = () => {
             <Paper>
                 <TableContainer>
                     <Table>
-                        <TableHead
+                        <TableHead<any>
                             columns={headers}
                             checkbox={{
                                 onClick: () => { },

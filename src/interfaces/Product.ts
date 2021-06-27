@@ -2,9 +2,11 @@ import { ModificationTypes } from '@constants/product';
 import { ICommonId, TPartial, ICommonReference } from '@interfaces/Global';
 import { IUserRef, initialUserRef } from '@interfaces/User';
 
+import { IProductImage } from './Image';
+
 export interface IProduct extends ICommonId {
     name: string;
-    image?: string;
+    images?: IProductImage;
     soldQuantity: number;
     barcode: string;
     sellPrice: number;
@@ -13,7 +15,9 @@ export interface IProduct extends ICommonId {
     lastModification?: IProductModRef;
     buyDeposit?: number;
     sellDeposit?: number;
+    description?: string;
     ref?: ICommonReference<IProduct>;
+    relatedProducts?: IProduct[];
 }
 
 export interface IProductMod extends ICommonId {

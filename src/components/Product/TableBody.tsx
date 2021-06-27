@@ -116,7 +116,6 @@ const TableBody: FC<Props> = (props) => {
                 setAlreadyChecked((current) => {
                     setTouchMoving((currentMoving) => {
                         if (!current && !currentMoving) {
-                            console.log(current, currentMoving);
                             handleClickProduct(product);
                         }
                         return false;
@@ -175,9 +174,13 @@ const TableBody: FC<Props> = (props) => {
                                 {
                                     columns.map((column) => {
                                         const isPrice = column.id === 'sellPrice' || column.id === 'buyPrice';
+                                        const isImages = column.id === 'images';
                                         const value = isPrice
                                             ? numberToCOP(product[column.id] as number)
-                                            : product[column.id];
+                                            : isImages
+                                                ? product.images?.default.publicURL
+                                                : product[column.id];
+
                                         return (
                                             <TableCell
                                                 align={column.align}
@@ -185,11 +188,11 @@ const TableBody: FC<Props> = (props) => {
                                                 className={isPrice ? classes.noWrap : ''}
                                             >
                                                 {
-                                                    column.id === 'image'
+                                                    column.id === 'images'
                                                         ? (
                                                             <ButtonBase
                                                                 className={classes.avatarButton}
-                                                                onClick={(e) => toggleOpenImage(e, product.image)}
+                                                                onClick={(e) => toggleOpenImage(e, product.images.default.publicURL)}
                                                             >
                                                                 <Avatar src={value?.toString() || ''} className={classes.avatar}>
                                                                     <Icon />

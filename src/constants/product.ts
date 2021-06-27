@@ -6,7 +6,7 @@ type ProductTableHeaders = (Column<IProduct> & { mobile?: boolean, tablet?: bool
 export const TableHeaders: ProductTableHeaders = [
     {
         component: 'Foto',
-        id: 'image',
+        id: 'images',
         tablet: true,
         align: 'center',
     }, {

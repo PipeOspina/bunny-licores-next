@@ -1,0 +1,12 @@
+runtime: nodejs12
+env: standard
+entrypoint: next dev -p $PORT
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+  redirect_http_response_code: 301

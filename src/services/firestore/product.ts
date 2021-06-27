@@ -5,7 +5,7 @@ import { IUser } from '@interfaces/User';
 import { ModificationTypes } from '@constants/product';
 import { TCommonQuerySnapshot, TCommonReference } from '@interfaces/Global';
 import { uploadImage } from '@services/storage/product';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, merge } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 type ProductRef = TCommonReference<IProduct>;
@@ -34,7 +34,10 @@ export const createModRef = (
 export const addProduct = async (
     product: IProduct,
     { name, id, email }: IUser,
-    image?: File,
+    images?: {
+        defaultIndex: number,
+        all: File[],
+    },
     handlers?: {
         getSubscribtion: (subscription: Subscription) => void,
         onError: (error: firebase.storage.FirebaseStorageError) => void;
@@ -61,25 +64,44 @@ export const addProduct = async (
         ref: modRef,
     };
 
-    if (image) {
-        await new Promise((res) => {
-            const { imageRef, observable } = uploadImage(docRef.id, modRef.id, image)
-            const sub = observable
-                .subscribe({
-                    complete: async () => {
-                        const url = await imageRef.getDownloadURL()
-                        product.image = url;
-                        await docRef.set(product);
-                        await modRef.set(mod);
-                        handlers.onComplete && handlers.onComplete();
-                        res(null);
-                    },
-                    error: handlers.onError,
-                    next: handlers.onSnapshot,
-                });
+    if (images?.all.length) {
+        await new Promise((resolve) => {
+            const results = images.all.map(
+                (image, index) => uploadImage(
+                    docRef.id,
+                    `${modRef.id}-${index}`,
+                    image,
+                ),
+            )
+
+            const observable = merge(...results.map((res) => res.observable));
+
+            const sub = observable.subscribe({
+                complete: async () => {
+                    product.images.all = await Promise.all(
+                        results.map(async (res) => ({
+                            publicURL: (await res.imageRef.getDownloadURL()) as string,
+                            storePath: res.imageRef.fullPath,
+                        })),
+                    );
+
+                    product.images.default = product.images.all.find(
+                        (_i, index) => index === images.defaultIndex,
+                    );
+
+                    await docRef.set(product);
+                    await modRef.set(mod);
+                    handlers.onComplete && handlers.onComplete();
+                    resolve(null);
+                },
+                error: handlers.onError,
+                next: handlers.onSnapshot,
+            });
+
             handlers.getSubscribtion(sub);
-        });
+        })
     } else {
+        delete product.images;
         await docRef.set(product);
         await modRef.set(mod);
         handlers.onComplete && handlers.onComplete();

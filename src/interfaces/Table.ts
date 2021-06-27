@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export interface Column<T> {
+export interface Column<T = any> {
     component: ReactNode;
     id: keyof T;
     noSort?: boolean;

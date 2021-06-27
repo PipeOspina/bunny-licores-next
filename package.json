@@ -1,17 +1,19 @@
 {
   "name": "bunny-next",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
     "start": "next start -p 8080",
     "deploy:prod": "gcloud app deploy app.yaml --project bunny-licores -q",
-    "deploy": "yarn build && yarn deploy:prod"
+    "deploy": "yarn build && yarn deploy:prod",
+    "deploy:dev": "gcloud app deploy app.dev.yaml --project bunny-licores-dev -q --ignore-file .gcloudignore.dev"
   },
   "dependencies": {
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.58",
     "@material-ui/styles": "^4.11.4",
     "@reduxjs/toolkit": "^1.5.1",
     "core-js": "^3.12.1",
@@ -22,10 +24,12 @@
     "react-markdown": "^6.0.1",
     "react-number-format": "^4.5.5",
     "react-redux": "^7.2.4",
+    "react-swipeable-views": "^0.14.0",
     "redux": "^4.1.0",
     "regenerator-runtime": "^0.13.7",
     "rehype-raw": "^5.1.0",
-    "rxjs": "^7.0.0"
+    "rxjs": "^7.0.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/material-ui": "^0.21.8",
@@ -35,8 +39,8 @@
     "typescript": "^4.2.4"
   },
   "engines": {
-    "node": "^12.13",
+    "node": "~12",
     "npm": "^7.12.1",
-    "yarn": "^1.22.10"
+    "yarn": "~1.22.4"
   }
 }

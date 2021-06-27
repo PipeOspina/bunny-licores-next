@@ -1,5 +1,5 @@
 import firebase from 'firebase/app';
-import { Observable } from 'rxjs';
+import { Observable, from, merge, concat } from 'rxjs';
 import { storage } from '../firebaseClient';
 
 const folder = storage.ref('images/Products')

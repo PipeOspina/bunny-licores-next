@@ -1,9 +1,11 @@
 import { initialProduct, IProduct, IProductModRef } from '@interfaces/Product';
-import { Avatar, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Grow, IconButton, TextField, Theme, Typography, useMediaQuery } from '@material-ui/core';
-import React, { ChangeEventHandler, Dispatch, FC, KeyboardEventHandler, useState } from 'react';
+import { Avatar, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Grow, IconButton, TextField, Theme, Typography, useMediaQuery, Chip } from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
+import React, { ChangeEventHandler, Dispatch, FC, KeyboardEventHandler, useEffect, useRef, useState } from 'react';
 import NumberFormat from 'components/CustomNumberFormat';
+import SelectDefaultImage from 'components/utils/SelectDefaultImage';
 import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
-import { Close, PhotoCamera } from '@material-ui/icons';
+import { CheckBox, Close, Done, PhotoCamera } from '@material-ui/icons';
 import { useDispatch, useSelector } from '@hooks/redux';
 import { addAlert } from '@actions/alert';
 import { addProduct } from '@firestore/product';
@@ -12,12 +14,14 @@ import { IProductSubscriptions } from '@interfaces/Subscription';
 import { useCharging } from '@hooks/charging';
 import { ICreateProductCharging } from '@interfaces/Charging';
 import { numberToCOP } from 'utils/converters';
+import { IProductImage } from '@interfaces/Image';
 
 interface Props {
     hideButton?: {
         open: boolean;
         setOpen: Dispatch<React.SetStateAction<boolean>>;
     };
+    products: IProduct[];
 }
 
 type Errors = {
@@ -31,20 +35,17 @@ const useStyles = makeStyles((theme: Theme) =>
         },
         title: {
             '& h2': {
+                '&>div>*:first-child': {
+                    marginRight: theme.spacing(1),
+                },
                 display: 'flex',
                 alignItems: 'center',
             }
         },
         container: {
             display: 'flex',
-            paddingBottom: theme.spacing(3),
-            [theme.breakpoints.down('xs')]: {
-                flexDirection: 'column',
-            },
-        },
-        avatarColumn: {
-            alignSelf: 'center',
-            marginRight: theme.spacing(2),
+            paddingBottom: theme.spacing(1),
+            flexDirection: 'column',
         },
         formColumn: {
             '& > *': {
@@ -61,17 +62,47 @@ const useStyles = makeStyles((theme: Theme) =>
                 width: '48%',
             }
         },
+        confirm: {
+            width: 250,
+        },
+        chip: {
+            margin: `${theme.spacing(1)}px ${theme.spacing(.5)}px`
+        },
+        imageCheckContainer: {
+            position: 'relative',
+        },
+        imageCheck: {
+            margin: theme.spacing(1),
+            borderRadius: '50%',
+        },
+        imageSpan: {
+            top: 0,
+            position: 'absolute',
+            margin: theme.spacing(1),
+            borderRadius: '50%',
+            opacity: '80%',
+            backgroundColor: theme.palette.primary.main,
+            height: 24,
+            width: 24,
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
     }),
 );
 
-const CreateProduct: FC<Props> = ({ hideButton }) => {
+const CreateProduct: FC<Props> = ({ hideButton, products }) => {
     const [open, setOpen] = hideButton
         ? [hideButton.open, hideButton.setOpen]
         : useState(false);
     const [product, setProduct] = useState<IProduct>(initialProduct);
     const [errors, setErrors] = useState<Errors>({});
-    const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+    const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const [haveDeposit, setHaveDeposit] = useState(false);
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [openGallery, setOpenGallery] = useState(false);
+    const [defaultIndex, setDefaultIndex] = useState(0);
 
     const classes = useStyles();
     const theme = useTheme<Theme>();
@@ -80,6 +111,7 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
     const { setSubscribtion, unsubscribe } = useSubscription<IProductSubscriptions>();
     const { setCharging } = useCharging<ICreateProductCharging>('createProduct');
     const user = useSelector(({ user }) => user);
+    const inputRef = useRef<HTMLInputElement>(null)
 
     const sell = product.sellPrice + (product.sellDeposit || 0);
     const buy = product.buyPrice + (product.buyDeposit || 0);
@@ -89,12 +121,15 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
     const toggleOpen = () => {
         setOpen((current) => {
             if (current) {
+                setOpenConfirm(false);
+                setOpenGallery(false);
                 setTimeout(() => {
                     setProduct(initialProduct);
                     setErrors({});
-                    setUploadedImage(null);
+                    setUploadedImages([]);
                     unsubscribe('uploadPhoto');
                     setCharging('addProduct', false);
+                    setHaveDeposit(false);
                 }, 500);
             }
             return !current;
@@ -103,13 +138,20 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
 
     const updateProduct = (
         key: keyof IProduct,
-        value: string | number | IProductModRef
+        value: string | number | IProductModRef | IProductImage | (string | IProduct)[]
     ) => {
         setErrors((current) => ({ ...current, [key]: undefined }))
-        setProduct((current) => ({
-            ...current,
-            [key]: value,
-        }));
+        if (value !== undefined) {
+            setProduct((current) => ({
+                ...current,
+                [key]: value,
+            }));
+        } else {
+            setProduct((current) => {
+                delete current[key];
+                return current;
+            });
+        }
     }
 
     const handleCreate = () => {
@@ -143,17 +185,18 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
         addProduct(
             product,
             user,
-            uploadedImage,
+            { all: uploadedImages, defaultIndex },
             handlers,
         );
     }
 
     const handleFileSelect: ChangeEventHandler<HTMLInputElement> = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.type.includes('image')) {
-                setUploadedImage(file);
-                updateProduct('image', URL.createObjectURL(file));
+        const files = [...event.target.files as unknown as File[]];
+        if (files) {
+            if (!files.find((file) => !file.type.includes('image'))) {
+                const uploaded = files.filter((file) => file.type.includes('image'));
+                setUploadedImages(uploaded);
+                setOpenGallery(uploaded.length > 1);
             } else {
                 dispatch(addAlert({
                     id: 'invalid-file-type',
@@ -166,7 +209,8 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
     }
 
     const handleUploadPhoto = () => {
-        document.getElementById('productPhotoInput').click();
+        inputRef?.current.click();
+
     }
 
     const handleKeyPressed: KeyboardEventHandler<HTMLDivElement> = (e) => {
@@ -182,6 +226,61 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
             }
         }
     }
+
+    const closeCreateProduct = () => {
+        if (product.name || product.barcode) {
+            setOpenConfirm(true);
+        } else {
+            toggleOpen();
+        }
+    };
+
+    const updateDefaultImage = (image?: File) => {
+        if (image) {
+            const path = window.URL.createObjectURL(image);
+            updateProduct('images', {
+                default: {
+                    publicURL: path,
+                    storePath: '',
+                },
+                all: product.images
+                    ? product.images.all
+                    : [{
+                        publicURL: path,
+                        storePath: '',
+                    }]
+            })
+            setDefaultIndex(uploadedImages.indexOf(image));
+        }
+    };
+
+    const handleRelated = (
+        _e: React.ChangeEvent<{}>,
+        value: (string | IProduct)[]
+    ) => {
+        updateProduct('relatedProducts', value);
+    };
+
+    useEffect(() => {
+        if (uploadedImages.length !== 0) {
+            updateProduct('images', {
+                default: product.images?.default.publicURL
+                    ? product.images.default
+                    : {
+                        publicURL: uploadedImages[0]
+                            ? window.URL.createObjectURL(uploadedImages[0])
+                            : '',
+                        storePath: '',
+                    },
+                all: uploadedImages.map((up) => ({
+                    publicURL: window.URL.createObjectURL(up),
+                    storePath: '',
+                }))
+            })
+        } else {
+            updateProduct('images', undefined);
+        }
+    }, [uploadedImages]);
 
     return (
         <>
@@ -199,57 +298,160 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
             <Dialog
                 onClose={toggleOpen}
                 open={open}
-                maxWidth="xs"
+                maxWidth="sm"
                 fullWidth
             >
                 <DialogTitle className={classes.title}>
-                    Crear Producto
-                    <IconButton className={classes.closeButton} onClick={toggleOpen}>
+                    <div>
+                        <IconButton
+                            onClick={() => {
+                                if (product.images?.default.publicURL) {
+                                    setOpenGallery(true);
+                                } else {
+                                    handleUploadPhoto()
+                                }
+                            }}
+                        >
+                            <Avatar src={product.images?.default.publicURL}>
+                                <PhotoCamera />
+                            </Avatar>
+                        </IconButton>
+                        Crear Producto{product.name ? ':' : ''} {product.name}
+                    </div>
+                    <IconButton className={classes.closeButton} onClick={closeCreateProduct}>
                         <Close />
                     </IconButton>
                 </DialogTitle>
                 <DialogContent className={classes.container} onKeyPress={handleKeyPressed}>
-                    <div className={classes.avatarColumn}>
-                        <IconButton onClick={handleUploadPhoto}>
-                            <Avatar src={product.image}>
-                                <PhotoCamera />
-                            </Avatar>
-                        </IconButton>
-                    </div>
                     <div className={classes.formColumn}>
-                        <TextField
-                            value={product.barcode}
-                            placeholder="Código de barras"
-                            label="Código de Barras"
-                            onChange={({ target }) => updateProduct('barcode', target.value)}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            inputProps={{
-                                id: 'create-product-dialog-barcode-input',
-                                ['next-input']: 'create-product-dialog-name-input',
-                            }}
-                            error={!!errors.barcode}
-                            helperText={errors.barcode}
-                            autoFocus
-                            required
-                        />
-                        <TextField
-                            value={product.name}
-                            placeholder="Nombre del producto"
-                            label="Nombre"
-                            onChange={({ target }) => updateProduct('name', target.value)}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            inputProps={{
-                                id: 'create-product-dialog-name-input',
-                                ['next-input']: 'create-product-dialog-buy-price-input',
-                            }}
-                            error={!!errors.name}
-                            helperText={errors.name}
-                            required
-                        />
+                        <div className={matches ? classes.formColumn : classes.doubleInput}>
+                            <TextField
+                                value={product.barcode}
+                                placeholder="Código de barras"
+                                label="Código de Barras"
+                                onChange={({ target }) => updateProduct('barcode', target.value)}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                inputProps={{
+                                    id: 'create-product-dialog-barcode-input',
+                                    ['next-input']: 'create-product-dialog-name-input',
+                                }}
+                                error={!!errors.barcode}
+                                helperText={errors.barcode}
+                                autoFocus
+                                required
+                            />
+                            <TextField
+                                value={product.name}
+                                placeholder="Nombre del producto"
+                                label="Nombre"
+                                onChange={({ target }) => updateProduct('name', target.value)}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                inputProps={{
+                                    id: 'create-product-dialog-name-input',
+                                    ['next-input']: 'create-product-dialog-description-input',
+                                }}
+                                error={!!errors.name}
+                                helperText={errors.name}
+                                required
+                            />
+                        </div>
+                        {
+                            !matches && (
+                                <div className={classes.formColumn}>
+                                    <TextField
+                                        value={product.description}
+                                        placeholder="Descripción"
+                                        label="Descripción"
+                                        onChange={({ target }) => updateProduct('description', target.value)}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                        }}
+                                        inputProps={{
+                                            id: 'create-product-dialog-description-input',
+                                            ['next-input']: 'create-product-dialog-related-input'
+                                        }}
+                                        multiline
+                                        rowsMax={3}
+                                        rows={3}
+                                    />
+                                    <Autocomplete
+                                        options={products}
+                                        disableCloseOnSelect
+                                        getOptionLabel={({ name }: IProduct) => name}
+                                        getOptionSelected={(option, value) => (
+                                            (
+                                                typeof option !== 'string'
+                                                && option.id
+                                            ) === (
+                                                typeof value !== 'string'
+                                                && value.id
+                                            )
+                                        )}
+                                        limitTags={2}
+                                        onChange={handleRelated}
+                                        renderTags={(tagValue, getTagProps) =>
+                                            tagValue.map(({ images, name }: IProduct, index) => (
+                                                <Chip
+                                                    {...getTagProps({ index })}
+                                                    label={name}
+                                                    avatar={images ? <Avatar src={images.default?.publicURL} /> : undefined}
+                                                    className={classes.chip}
+                                                />
+                                            ))
+                                        }
+                                        noOptionsText="Producto no encontrado"
+                                        renderOption={({ name, images }: IProduct, { selected }) => (
+                                            <React.Fragment>
+                                                {
+                                                    images
+                                                        ? (
+                                                            <div className={classes.imageCheckContainer}>
+                                                                <img
+                                                                    src={images.default?.publicURL}
+                                                                    height="24"
+                                                                    width="24"
+                                                                    className={classes.imageCheck}
+                                                                />
+                                                                {
+                                                                    selected && (
+                                                                        <span className={classes.imageSpan}>
+                                                                            <Done fontSize="small" />
+                                                                        </span>
+                                                                    )
+                                                                }
+                                                            </div>
+                                                        ) : (
+                                                            <Checkbox checked={selected} color="primary" />
+                                                        )
+                                                }
+                                                {name}
+                                            </React.Fragment>
+                                        )}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Productos relacionados"
+                                                placeholder="Productos relacionados"
+                                                InputLabelProps={{
+                                                    ...params.InputLabelProps,
+                                                    shrink: true,
+                                                }}
+                                                inputProps={{
+                                                    ...params.inputProps,
+                                                    id: 'create-product-dialog-related-input',
+                                                    ['next-input']: 'create-product-dialog-buy-price-input'
+                                                }}
+                                            />
+                                        )}
+                                        multiple
+                                    />
+                                </div>
+                            )
+                        }
                         <div className={matches ? classes.formColumn : classes.doubleInput}>
                             <TextField
                                 value={product.buyPrice || ''}
@@ -350,6 +552,7 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
                                     }}
                                     inputProps={{
                                         id: 'create-product-dialog-sell-deposit-input',
+                                        ['next-input']: 'Enter',
                                     }}
                                     required
                                 />
@@ -375,11 +578,44 @@ const CreateProduct: FC<Props> = ({ hideButton }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Dialog
+                open={openConfirm}
+                onClose={() => setOpenConfirm(false)}
+            >
+                <DialogTitle>Cerrar</DialogTitle>
+                <DialogContent>
+                    <DialogContentText className={classes.confirm}>
+                        ¿Estás seguro que deseas cerrar la creación del producto&nbsp;
+                        <strong>{product.name || `# ${product.barcode}`}?</strong>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenConfirm(false)}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={toggleOpen}
+                    >
+                        Aceptar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <SelectDefaultImage
+                open={openGallery}
+                handleClose={() => setOpenGallery(false)}
+                images={uploadedImages}
+                onImagesChange={setUploadedImages}
+                onDefaultImageChange={updateDefaultImage}
+            />
             <input
+                ref={inputRef}
                 type="file"
-                id="productPhotoInput"
                 onChange={handleFileSelect}
+                onClick={(event) => (event.target as any).value = ''}
                 accept="image/*"
+                multiple
                 hidden
             />
         </>
