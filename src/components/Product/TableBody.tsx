@@ -1,7 +1,7 @@
 import React, { FC, MouseEvent, useState } from 'react';
 import { Avatar, ButtonBase, Checkbox, Dialog, DialogContent, Grow, TableBody as MuiTableBody, TableCell, TableRow, Theme, useMediaQuery, Zoom } from '@material-ui/core';
 import { IProduct } from '@interfaces/Product';
-import { Column } from '@interfaces/Table';
+import { Changes, Column } from '@interfaces/Table';
 import { Liquor, WineBar, SportsBar, LocalBar } from '@icons/Liquor';
 import { numberToCOP } from 'utils/converters';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
@@ -13,6 +13,7 @@ interface Props {
     columns: Column<IProduct>[];
     onCheck: (product: IProduct) => void;
     checked: string[];
+    changes: Changes;
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -33,6 +34,24 @@ const useStyles = makeStyles((theme: Theme) =>
         row: {
             cursor: 'pointer',
         },
+        cell: {
+            transition: 'color .3s, font-weight .3s',
+        },
+        new: {
+            color: 'limegreen',
+            fontWeight: 500,
+            transition: 'color .3s',
+        },
+        deleted: {
+            color: 'firebrick',
+            fontWeight: 500,
+            transition: 'color .3s',
+        },
+        modified: {
+            color: 'goldenrod',
+            fontWeight: 500,
+            transition: 'color .3s',
+        },
     }),
 );
 
@@ -42,6 +61,7 @@ const TableBody: FC<Props> = (props) => {
         columns,
         onCheck,
         checked,
+        changes,
     } = props;
 
     const [openImage, setOpenImage] = useState(false);
@@ -143,7 +163,10 @@ const TableBody: FC<Props> = (props) => {
             <MuiTableBody>
                 {
                     products.map((product) => {
-                        const Icon = icons[product.name.length % icons.length]
+                        const Icon = icons[product.name.length % icons.length];
+                        const isNew = !!changes.newIds.find((id) => id === product.id);
+                        const isDeleted = !!changes.deletedIds.find((id) => id === product.id);
+                        const isModified = !!changes.modifiedIds.find((id) => id === product.id);
                         return (
                             <TableRow
                                 key={`PRODUCTS-TABLE-ROW-${product.id.toUpperCase()}`}
@@ -152,12 +175,14 @@ const TableBody: FC<Props> = (props) => {
                                 onTouchStart={() => handleTouchStart(product)}
                                 onTouchMove={() => setTouchMoving(true)}
                                 onTouchEnd={() => handleTouchEnd(product)}
-                                className={classes.row}
+                                className={`
+                                    ${classes.row}
+                                `}
                                 onClick={() => !isTouch ? handleClickProduct(product) : null}
                                 hover
                             >
                                 <Grow in={match || checked.length !== 0} unmountOnExit>
-                                    <TableCell padding="checkbox">
+                                    <TableCell padding="checkbox" className={classes.cell}>
                                         <Checkbox
                                             color="primary"
                                             checked={checked.includes(product.id)}
@@ -185,7 +210,13 @@ const TableBody: FC<Props> = (props) => {
                                             <TableCell
                                                 align={column.align}
                                                 key={`PRODUCTS-TABLE-CELL-${product.id.toUpperCase()}-${column.id.toUpperCase()}`}
-                                                className={isPrice ? classes.noWrap : ''}
+                                                className={`
+                                                    ${classes.cell}
+                                                    ${isPrice ? classes.noWrap : ''}
+                                                    ${isNew ? classes.new : ''}
+                                                    ${isDeleted ? classes.deleted : ''}
+                                                    ${isModified ? classes.modified : ''}
+                                                `}
                                             >
                                                 {
                                                     column.id === 'images'

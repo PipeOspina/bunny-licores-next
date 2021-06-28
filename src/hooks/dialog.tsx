@@ -1,5 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@material-ui/core'
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 export enum DialogType {
     WARNING = 'DIALOG_TYPE/WARNING',
@@ -12,6 +14,7 @@ interface Props {
     type?: DialogType;
     resetOnClose?: boolean;
     preventClose?: boolean;
+    useMarkdown?: boolean;
     onCancel?: () => void;
     onAccept?: () => void;
 }
@@ -26,6 +29,7 @@ const useDialog = ({
     title = 'Advertencia',
     type = DialogType.WARNING,
     resetOnClose = true,
+    useMarkdown,
     onCancel,
     onAccept,
 }: Props) => {
@@ -79,10 +83,19 @@ const useDialog = ({
             <DialogTitle>{props.title}</DialogTitle>
             <DialogContent>
                 {
-                    typeof props.message === 'string'
+                    useMarkdown && typeof props.message === 'string'
                         ? (
-                            <DialogContentText>{props.message}</DialogContentText>
-                        ) : props.message
+                            <ReactMarkdown
+                                rehypePlugins={[rehypeRaw]}
+                                children={props.message}
+                                skipHtml={false}
+                            />
+                        )
+                        : typeof props.message === 'string'
+                            ? (
+                                <DialogContentText>{props.message}</DialogContentText>
+                            )
+                            : props.message
                 }
             </DialogContent>
             <DialogActions>

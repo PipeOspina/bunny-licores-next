@@ -168,7 +168,12 @@ export const getProducts = () => {
                         };
                         return { ...data, ref: doc.ref, lastModification, creation };
                     })
-                return { ...res, data: prods }
+                const { docChanges, forEach, isEqual } = res;
+                return { ...res, data: prods, docChanges, forEach, isEqual }
             }),
         );
 }
+
+export const removeProduct = async (id: string) => {
+    await products.doc(id).delete();
+};

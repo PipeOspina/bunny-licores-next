@@ -49,15 +49,15 @@ export const sortProducts = (products: IProduct[], order: Order<keyof IProduct>)
             const creationA = productA.creation.date;
             const creationB = productB.creation.date;
 
-            const defaultOrderAsc = creationA > creationB
+            const defaultOrderAsc = creationA < creationB
                 ? -1
-                : creationA < creationB
+                : creationA > creationB
                     ? 1
                     : 0;
 
-            const defaultOrderDesc = creationA < creationB
+            const defaultOrderDesc = creationA > creationB
                 ? -1
-                : creationA > creationB
+                : creationA < creationB
                     ? 1
                     : 0;
 

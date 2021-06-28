@@ -18,6 +18,13 @@ export interface Pagination {
     page: number;
 }
 
+export interface Changes {
+    allreadyCharged: boolean;
+    newIds: string[];
+    deletedIds: string[];
+    modifiedIds: string[];
+}
+
 export const initialPagination: Pagination = {
     page: 0,
     rowsPerPage: 10,
