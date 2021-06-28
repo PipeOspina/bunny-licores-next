@@ -38,13 +38,15 @@ const Head = <T extends unknown>(props: Props<T>) => {
     const match = useMediaQuery(theme.breakpoints.up('sm'));
 
     const checked = (
-        checkbox.rowsSelected !== 0
+        checkbox
+        && checkbox.rowsSelected !== 0
         && checkbox.totalRows !== 0
         && checkbox.rowsSelected === checkbox.totalRows
     )
 
     const indeterminate = (
-        checkbox.rowsSelected !== 0
+        checkbox
+        && checkbox.rowsSelected !== 0
         && checkbox.totalRows !== 0
         && checkbox.rowsSelected < checkbox.totalRows
     )

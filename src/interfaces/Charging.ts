@@ -33,11 +33,13 @@ export const initialIndexCharging: IIndexCharging = {
 }
 
 export interface IProductTableCharging {
+    deleteProducts: boolean;
     getProducts: boolean;
 }
 
 export const initialProductTableCharging: IProductTableCharging = {
     getProducts: false,
+    deleteProducts: false,
 }
 
 export interface ICreateProductCharging {

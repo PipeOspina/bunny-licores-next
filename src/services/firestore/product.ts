@@ -1,7 +1,6 @@
 import { convertProductToRelated } from './../../utils/functions';
-import { IFireProductModRef, IRelatedProduct } from './../../interfaces/Product';
 import firebase from 'firebase/app';
-import { IFireProduct, IProductMod, IProduct, IProductModRef } from '@interfaces/Product';
+import { IFireProduct, IProductMod, IProduct, IProductModRef, IFireProductMod } from '@interfaces/Product';
 import { db } from '../firebaseClient';
 import { IUser } from '@interfaces/User';
 import { ModificationTypes } from '@constants/product';
@@ -13,7 +12,7 @@ import { map } from 'rxjs/operators';
 type ProductRef<T = IFireProduct> = TCommonReference<T>;
 type QuerySnapshot<T = IFireProduct> = TCommonQuerySnapshot<T>;
 
-const products = db.collection('Products');
+const products = db.collection('Products') as firebase.firestore.CollectionReference<IFireProduct>;
 
 const mods = (id, ref?: ProductRef) => (
     ref?.collection('Modifications')
@@ -30,7 +29,7 @@ export const createModRef = (
     productId: string,
     productRef?: ProductRef,
 ) => {
-    return mods(productId, productRef).doc();
+    return mods(productId, productRef).doc() as firebase.firestore.DocumentReference<IProductMod>;
 }
 
 export const addProduct = async (
@@ -98,7 +97,7 @@ export const addProduct = async (
                         delete product.images;
                     }
 
-                    await docRef.set(product);
+                    await docRef.set(product as any);
                     await modRef.set(mod);
                     handlers.onComplete && handlers.onComplete();
 
@@ -112,36 +111,41 @@ export const addProduct = async (
         })
     } else {
         delete product.images;
-        await docRef.set(product);
+        await docRef.set(product as any);
         await modRef.set(mod);
         handlers.onComplete && handlers.onComplete();
     }
 
-    await Promise.all(
-        product.relatedProducts?.map(async (related) => {
-            const relatedRef = await related.ref.get();
-            const relatedData = relatedRef.data();
-            const productRelated = convertProductToRelated({
-                ...product,
-                ref: docRef,
-            });
-
-            await related
-                .ref
-                .update({
-                    relatedProducts: relatedData.relatedProducts
-                        ? [
-                            ...relatedData.relatedProducts,
-                            productRelated,
-                        ]
-                        : [productRelated],
+    if (product.relatedProducts?.length) {
+        const batch = db.batch();
+        await Promise.all(
+            product.relatedProducts.map(async (related) => {
+                const relatedRef = await related.ref.get();
+                const relatedData = relatedRef.data();
+                const productRelated = convertProductToRelated({
+                    ...product,
+                    ref: docRef,
                 });
-        })
-        || []
-    );
+    
+                batch
+                    .update(
+                        related.ref,
+                        'relatedProducts',
+                        relatedData.relatedProducts
+                            ? [
+                                ...relatedData.relatedProducts,
+                                productRelated,
+                            ]
+                            : [productRelated],
+                    );
+            }),
+        );
+        await batch.commit();
+    }
+
 
     return docRef;
-}
+};
 
 export const getProducts = () => {
     return new Observable<QuerySnapshot>((observer) => {
@@ -172,8 +176,58 @@ export const getProducts = () => {
                 return { ...res, data: prods, docChanges, forEach, isEqual }
             }),
         );
-}
+};
 
 export const removeProduct = async (id: string) => {
+    const product = await (products.doc(id) as ProductRef).get();
+    const data = product.data();
+    const relateds = data.relatedProducts;
+    if (relateds?.length) {
+        const newBatch = db.batch();
+        await Promise.all(relateds.map(async (related) => {
+            const relatedDoc = await related.ref.get();
+            const relatedData = relatedDoc.data();
+            if (relatedData?.relatedProducts?.length) {
+                const newRelated = relatedData
+                    .relatedProducts
+                    ?.filter((productRelated) => productRelated.ref.id !== id);
+                newBatch.update(related.ref, 'relatedProducts', newRelated);
+            }
+        }))
+        await newBatch.commit();
+    }
     await products.doc(id).delete();
+};
+
+export const removeProducts = async (ids: string[]) => {
+    if (ids.length) {
+        const batch = db.batch();
+        await Promise.all(
+            ids.map(async (id) => {
+                const product = await (products.doc(id) as ProductRef).get();
+                const data = product.data();
+                const relateds = data.relatedProducts;
+                if (relateds?.length) {
+                    const newBatch = db.batch();
+                    await Promise.all(relateds.map(async (related) => {
+                        const relatedDoc = await related.ref.get();
+                        const relatedData = relatedDoc.data();
+                        if (relatedData?.relatedProducts?.length) {
+                            const newRelated = relatedData
+                                .relatedProducts
+                                ?.filter((productRelated) => productRelated.ref.id !== id);
+                            newBatch.update(related.ref, 'relatedProducts', newRelated);
+                        }
+                    }))
+                    await newBatch.commit();
+                }
+                batch.delete(product.ref);
+            }),
+        )
+    
+        await batch.commit();
+        await Promise.all(ids.map(async (id) => {
+            await products.doc(id).delete()
+        }))
+    }
 };

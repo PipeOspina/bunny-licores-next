@@ -6,7 +6,7 @@ export interface ICommonId {
 
 export type TCommonReference<T = firebase.firestore.DocumentData> = firebase
     .firestore
-    .DocumentReference<T | firebase.firestore.DocumentData>;
+    .DocumentReference<T>;
 
 export type TCommonQuerySnapshot<T = firebase.firestore.DocumentData> = firebase
     .firestore

@@ -1,6 +1,6 @@
 import { useCharging } from '@hooks/charging';
 import { IIndexCharging, IProductTableCharging } from '@interfaces/Charging';
-import { IconButton, Paper, Table, TableContainer, Theme, Typography, useMediaQuery, TablePagination, Collapse } from '@material-ui/core';
+import { IconButton, Paper, Table, TableContainer, Theme, Typography, useMediaQuery, TablePagination, Collapse, TextField, InputAdornment, TableBody as MuiTableBody, TableRow, TableCell } from '@material-ui/core';
 import Title from 'components/Title';
 import React, { useEffect, useState } from 'react';
 import CreateProduct from 'components/Product/CreateProduct';
@@ -9,15 +9,14 @@ import TableHeah from 'components/CommonTable/Header';
 import { TableHeaders } from '@constants/product';
 import { useSubscription } from '@hooks/subscription';
 import { IProductSubscriptions } from '@interfaces/Subscription';
-import { getProducts } from '@services/firestore/product';
+import { getProducts, removeProducts } from '@firestore/product';
 import { IProduct } from '@interfaces/Product';
 import { Changes, initialPagination, Order, Pagination } from '@interfaces/Table';
 import TableBody from 'components/Product/TableBody';
 import { cssVariables } from '@styles/theme';
 import { Liquor } from '@icons/Liquor';
 import { sortProducts } from '@utils/functions';
-import { Delete } from '@material-ui/icons';
-import { removeProduct } from '@firestore/product'
+import { Clear, Delete, Filter, Search } from '@material-ui/icons';
 import useDialog, { DialogType } from '@hooks/dialog';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -26,6 +25,16 @@ const useStyles = makeStyles((theme: Theme) =>
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+        },
+        searchContainer: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+        },
+        searchInput: {
+            marginBottom: theme.spacing(2),
+        },
+        fullInput: {
+            width: '100%',
         },
         noProducts: {
             height: `calc(${cssVariables(theme).containerHeight} - 105px)`,
@@ -51,6 +60,7 @@ const Products = () => {
     const [openCreate, setOpenCreate] = useState(false);
     const [order, setOrder] = useState<Order<keyof IProduct>>({ direction: 'asc' });
     const [pagination, setPagination] = useState<Pagination>(initialPagination);
+    const [searchValue, setSearchValue] = useState('');
     const [changes, setChanges] = useState<Changes>({
         allreadyCharged: false,
         newIds: [],
@@ -71,7 +81,9 @@ const Products = () => {
     const { Component, openDialog, setDialogProps } = useDialog({
         message: `¿Está seguro que desea eliminar <strong>${selectedProducts.length} producto${includeS}</strong>?`,
         onAccept: () => {
-            selectedIds.forEach((id) => removeProduct(id));
+            setCharging('deleteProducts');
+            removeProducts(selectedIds)
+                .finally(() => setCharging('deleteProducts', false));
             setSelectedProducts([]);
         },
         title: 'Eliminar Productos',
@@ -87,7 +99,21 @@ const Products = () => {
             : TableHeaders;
     const selectedIds = selectedProducts.map((prod) => prod.id);
     const sortedProducts = sortProducts(products, order);
-    const paginatedProducts = sortedProducts.slice(
+    const searchResult = sortedProducts
+        .filter((product) => {
+            const searchField = `
+                    ${product.barcode}
+                    ${product.name}
+                    ${product.stockQuantity}
+                    ${product.soldQuantity}
+                    ${product.sellPrice}
+                    ${product.buyPrice}
+                    ${product.description || ''}
+                `;
+            return searchField.toLowerCase().includes(searchValue.toLowerCase())
+        });
+
+    const paginatedProducts = (searchValue ? searchResult : sortedProducts).slice(
         pagination.page * pagination.rowsPerPage,
         (pagination.page + 1) * pagination.rowsPerPage,
     )
@@ -95,7 +121,9 @@ const Products = () => {
     const toggleAllChecked = () => {
         setSelectedProducts((
             selectedProducts.length === 0
-                ? products
+                ? searchValue
+                    ? searchResult
+                    : products
                 : []
         ));
     }
@@ -116,80 +144,94 @@ const Products = () => {
                 </IconButton>
             </div>
         ),
-    }
+    };
+
+    const getPaginationAndChanges = (
+        callback: (
+            currentPagination: Pagination,
+            currentChanges: Changes,
+        ) => void,
+    ) => {
+        setPagination((currentPagination) => {
+            setChanges((currentChanges) => {
+                callback(currentPagination, currentChanges);
+                return currentChanges;
+            });
+            return currentPagination;
+        });
+    };
 
     useEffect(() => {
         indexCharging('redirect', false)
         setCharging('getProducts');
+        setPagination((current) => current);
+        setChanges((current) => current);
         setSubscribtion(
             'getProducts',
             getProducts()
                 .subscribe({
                     next: (res) => {
-                        const changes = res.docChanges();
-                        setPagination((current) => {
-                            setChanges((currentChanges) => {
-                                console.log(currentChanges);
-                                if (currentChanges.allreadyCharged) {
-                                    const min = current.page * current.rowsPerPage;
-                                    const max = (current.page * current.rowsPerPage) + current.rowsPerPage;
-                                    const newIds = changes
-                                        .filter((change, index) => (
-                                            change.type === 'added'
-                                            && index >= min
-                                            && index < max
-                                        ))
-                                        .map((change) => change.doc.data().id);
-                                    const deletedIds = changes
-                                        .filter((change, index) => (
-                                            change.type === 'removed'
-                                            && index >= min
-                                            && index < max
-                                        ))
-                                        .map((change) => change.doc.data().id);
-                                    const modifiedIds = changes
-                                        .filter((change, index) => (
-                                            change.type === 'modified'
-                                            && index >= min
-                                            && index < max
-                                        ))
-                                        .map((change) => change.doc.data().id);
+                        const resChanges = res.docChanges();
+                        getPaginationAndChanges((currentPagination, currentChanges) => {
+                            if (currentChanges.allreadyCharged) {
+                                const { rowsPerPage, page } = currentPagination;
+                                const min = page * rowsPerPage;
+                                const max = (page * rowsPerPage) + rowsPerPage;
+                                const newIds = resChanges
+                                    .filter((change, index) => (
+                                        change.type === 'added'
+                                        && index >= min
+                                        && index < max
+                                    ))
+                                    .map((change) => change.doc.data().id);
+                                const deletedIds = resChanges
+                                    .filter((change, index) => (
+                                        change.type === 'removed'
+                                        && index >= min
+                                        && index < max
+                                    ))
+                                    .map((change) => change.doc.data().id);
+                                const modifiedIds = resChanges
+                                    .filter((change, index) => (
+                                        change.type === 'modified'
+                                        && index >= min
+                                        && index < max
+                                    ))
+                                    .map((change) => change.doc.data().id);
 
-                                    if (!deletedIds.length) {
-                                        setProducts(res.data);
-                                    }
-
-                                    setTimeout(() => {
-                                        if (deletedIds.length) {
-                                            setTimeout(() => {
-                                                setProducts(res.data);
-                                            }, 100);
-                                        }
-                                        setChanges({
-                                            allreadyCharged: true,
-                                            newIds: [],
-                                            deletedIds: [],
-                                            modifiedIds: [],
-                                        });
-                                    }, 500)
-                                    return {
-                                        allreadyCharged: true,
-                                        newIds,
-                                        deletedIds,
-                                        modifiedIds,
-                                    };
-                                } else {
-                                    console.log('entro')
-                                    setProducts(res.data);
+                                if (!deletedIds.length) {
+                                    setProducts(res.data as any);
                                 }
-                                return {
+
+                                setChanges({
+                                    allreadyCharged: true,
+                                    newIds,
+                                    deletedIds,
+                                    modifiedIds,
+                                });
+
+                                setTimeout(() => {
+                                    if (deletedIds.length) {
+                                        setTimeout(() => {
+                                            setProducts(res.data as any);
+                                        }, 100);
+                                    }
+                                    setChanges({
+                                        allreadyCharged: true,
+                                        newIds: [],
+                                        deletedIds: [],
+                                        modifiedIds: [],
+                                    });
+                                }, 500);
+                            } else {
+                                setProducts(res.data as any);
+                                setChanges({
                                     allreadyCharged: true,
                                     newIds: [],
                                     deletedIds: [],
                                     modifiedIds: [],
-                                };
-                            })
-                            return current;
+                                });
+                            }
                         });
                         setCharging('getProducts', false);
                     },
@@ -233,41 +275,74 @@ const Products = () => {
             {
                 sortedProducts.length
                     ? (
-                        <Paper>
-                            <TableContainer>
-                                <Table>
-                                    <TableHeah<IProduct>
-                                        columns={headers}
-                                        checkbox={checkboxProps}
-                                        order={order}
-                                        handleSort={(newOrder) => setOrder(newOrder)}
-                                    />
-                                    <TableBody
-                                        columns={headers}
-                                        products={paginatedProducts}
-                                        onCheck={handleSelectRow}
-                                        checked={selectedIds}
-                                        changes={changes}
-                                    />
-                                </Table>
-                            </TableContainer>
-                            <Collapse in={sortedProducts.length > pagination.rowsPerPageOptions[0]}>
-                                <TablePagination
-                                    component="div"
-                                    count={sortedProducts.length}
-                                    page={pagination.page}
-                                    onChangePage={(_e, page) => updatePagination('page', page)}
-                                    rowsPerPage={pagination.rowsPerPage}
-                                    onChangeRowsPerPage={({ target }) => updatePagination(
-                                        'rowsPerPage',
-                                        isNaN(parseInt(target.value))
-                                            ? initialPagination.rowsPerPage
-                                            : parseInt(target.value),
-                                    )}
-                                    rowsPerPageOptions={pagination.rowsPerPageOptions}
+                        <>
+                            <div className={classes.searchContainer}>
+                                <TextField
+                                    id="SERACH-FIELD-PRODUCT-TABLE"
+                                    onChange={({ target }) => setSearchValue(target.value)}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => {
+                                                        searchValue
+                                                            ? setSearchValue('')
+                                                            : document
+                                                                .getElementById('SERACH-FIELD-PRODUCT-TABLE')
+                                                                ?.focus()
+                                                    }}
+                                                >
+                                                    {
+                                                        searchValue
+                                                            ? <Clear />
+                                                            : <Search />
+                                                    }
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                    label="Buscar"
+                                    value={searchValue}
+                                    className={`${classes.searchInput} ${matchMobile ? classes.fullInput : ''}`}
                                 />
-                            </Collapse>
-                        </Paper>
+                            </div>
+                            <Paper>
+                                <TableContainer>
+                                    <Table>
+                                        <TableHeah<IProduct>
+                                            columns={headers}
+                                            checkbox={searchValue && searchResult.length === 0 ? undefined : checkboxProps}
+                                            order={order}
+                                            handleSort={(newOrder) => setOrder(newOrder)}
+                                        />
+                                        <TableBody
+                                            columns={headers}
+                                            products={paginatedProducts}
+                                            onCheck={handleSelectRow}
+                                            checked={selectedIds}
+                                            changes={changes}
+                                        />
+                                    </Table>
+                                </TableContainer>
+                                <Collapse in={sortedProducts.length > pagination.rowsPerPageOptions[0]}>
+                                    <TablePagination
+                                        component="div"
+                                        count={sortedProducts.length}
+                                        page={pagination.page}
+                                        onChangePage={(_e, page) => updatePagination('page', page)}
+                                        rowsPerPage={pagination.rowsPerPage}
+                                        onChangeRowsPerPage={({ target }) => updatePagination(
+                                            'rowsPerPage',
+                                            isNaN(parseInt(target.value))
+                                                ? initialPagination.rowsPerPage
+                                                : parseInt(target.value),
+                                        )}
+                                        rowsPerPageOptions={pagination.rowsPerPageOptions}
+                                    />
+                                </Collapse>
+                            </Paper>
+                        </>
                     ) : (
                         <div className={classes.noProducts}>
                             <IconButton

@@ -35,7 +35,7 @@ export interface IFireProduct extends ICommonId {
     sellDeposit?: number;
     description?: string;
     ref?: TCommonReference<IFireProduct>;
-    relatedProducts?: IFireProduct[];
+    relatedProducts?: IRelatedProduct[];
     creation?: IFireProductModRef;
 }
 

@@ -1,5 +1,5 @@
 import React, { FC, MouseEvent, useState } from 'react';
-import { Avatar, ButtonBase, Checkbox, Dialog, DialogContent, Grow, TableBody as MuiTableBody, TableCell, TableRow, Theme, useMediaQuery, Zoom } from '@material-ui/core';
+import { Avatar, ButtonBase, Checkbox, Dialog, DialogContent, Grow, TableBody as MuiTableBody, TableCell, TableRow, Theme, useMediaQuery, Zoom, Tooltip } from '@material-ui/core';
 import { IProduct } from '@interfaces/Product';
 import { Changes, Column } from '@interfaces/Table';
 import { Liquor, WineBar, SportsBar, LocalBar } from '@icons/Liquor';
@@ -7,6 +7,7 @@ import { numberToCOP } from 'utils/converters';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import Link from 'components/Link';
 import { useRouter } from 'next/router';
+import { Info } from '@material-ui/icons';
 
 interface Props {
     products: IProduct[];
@@ -51,6 +52,12 @@ const useStyles = makeStyles((theme: Theme) =>
             color: 'goldenrod',
             fontWeight: 500,
             transition: 'color .3s',
+        },
+        noProducts: {
+            height: 250,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     }),
 );
@@ -162,82 +169,95 @@ const TableBody: FC<Props> = (props) => {
         <>
             <MuiTableBody>
                 {
-                    products.map((product) => {
-                        const Icon = icons[product.name.length % icons.length];
-                        const isNew = !!changes.newIds.find((id) => id === product.id);
-                        const isDeleted = !!changes.deletedIds.find((id) => id === product.id);
-                        const isModified = !!changes.modifiedIds.find((id) => id === product.id);
-                        return (
-                            <TableRow
-                                key={`PRODUCTS-TABLE-ROW-${product.id.toUpperCase()}`}
-                                role="button"
-                                selected={checked.includes(product.id)}
-                                onTouchStart={() => handleTouchStart(product)}
-                                onTouchMove={() => setTouchMoving(true)}
-                                onTouchEnd={() => handleTouchEnd(product)}
-                                className={`
-                                    ${classes.row}
-                                `}
-                                onClick={() => !isTouch ? handleClickProduct(product) : null}
-                                hover
-                            >
-                                <Grow in={match || checked.length !== 0} unmountOnExit>
-                                    <TableCell padding="checkbox" className={classes.cell}>
-                                        <Checkbox
-                                            color="primary"
-                                            checked={checked.includes(product.id)}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (!alreadyChecked || !isTouch) {
-                                                    onCheck(product);
-                                                    setAlreadyChecked(true);
-                                                }
-                                            }}
-                                        />
-                                    </TableCell>
-                                </Grow>
-                                {
-                                    columns.map((column) => {
-                                        const isPrice = column.id === 'sellPrice' || column.id === 'buyPrice';
-                                        const isImages = column.id === 'images';
-                                        const value = isPrice
-                                            ? numberToCOP(product[column.id] as number)
-                                            : isImages
-                                                ? product.images?.default.publicURL
-                                                : product[column.id];
+                    products.length
+                        ? products.map((product) => {
+                            const Icon = icons[product.name.length % icons.length];
+                            const isNew = !!changes.newIds.find((id) => id === product.id);
+                            const isDeleted = !!changes.deletedIds.find((id) => id === product.id);
+                            const isModified = !!changes.modifiedIds.find((id) => id === product.id);
+                            return (
+                                <TableRow
+                                    key={`PRODUCTS-TABLE-ROW-${product.id.toUpperCase()}`}
+                                    role="button"
+                                    selected={checked.includes(product.id)}
+                                    onTouchStart={() => handleTouchStart(product)}
+                                    onTouchMove={() => setTouchMoving(true)}
+                                    onTouchEnd={() => handleTouchEnd(product)}
+                                    className={`
+                                        ${classes.row}
+                                    `}
+                                    onClick={() => !isTouch ? handleClickProduct(product) : null}
+                                    hover
+                                >
+                                    <Grow in={match || checked.length !== 0} unmountOnExit>
+                                        <TableCell padding="checkbox" className={classes.cell}>
+                                            <Checkbox
+                                                color="primary"
+                                                checked={checked.includes(product.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (!alreadyChecked || !isTouch) {
+                                                        onCheck(product);
+                                                        setAlreadyChecked(true);
+                                                    }
+                                                }}
+                                            />
+                                        </TableCell>
+                                    </Grow>
+                                    {
+                                        columns.map((column) => {
+                                            const isPrice = column.id === 'sellPrice' || column.id === 'buyPrice';
+                                            const isImages = column.id === 'images';
+                                            const value = isPrice
+                                                ? numberToCOP(product[column.id] as number)
+                                                : isImages
+                                                    ? product.images?.default.publicURL
+                                                    : product[column.id];
 
-                                        return (
-                                            <TableCell
-                                                align={column.align}
-                                                key={`PRODUCTS-TABLE-CELL-${product.id.toUpperCase()}-${column.id.toUpperCase()}`}
-                                                className={`
-                                                    ${classes.cell}
-                                                    ${isPrice ? classes.noWrap : ''}
-                                                    ${isNew ? classes.new : ''}
-                                                    ${isDeleted ? classes.deleted : ''}
-                                                    ${isModified ? classes.modified : ''}
-                                                `}
-                                            >
-                                                {
-                                                    column.id === 'images'
-                                                        ? (
-                                                            <ButtonBase
-                                                                className={classes.avatarButton}
-                                                                onClick={(e) => toggleOpenImage(e, product.images.default.publicURL)}
-                                                            >
-                                                                <Avatar src={value?.toString() || ''} className={classes.avatar}>
-                                                                    <Icon />
-                                                                </Avatar>
-                                                            </ButtonBase>
-                                                        ) : value
-                                                }
-                                            </TableCell>
-                                        );
-                                    })
-                                }
+                                            return (
+                                                <TableCell
+                                                    align={column.align}
+                                                    key={`PRODUCTS-TABLE-CELL-${product.id.toUpperCase()}-${column.id.toUpperCase()}`}
+                                                    className={`
+                                                        ${classes.cell}
+                                                        ${isPrice ? classes.noWrap : ''}
+                                                        ${isNew ? classes.new : ''}
+                                                        ${isDeleted ? classes.deleted : ''}
+                                                        ${isModified && !isDeleted ? classes.modified : ''}
+                                                    `}
+                                                >
+                                                    {
+                                                        column.id === 'images'
+                                                            ? (
+                                                                <ButtonBase
+                                                                    className={classes.avatarButton}
+                                                                    onClick={(e) => toggleOpenImage(e, product.images.default.publicURL)}
+                                                                >
+                                                                    <Avatar src={value?.toString() || ''} className={classes.avatar}>
+                                                                        <Icon />
+                                                                    </Avatar>
+                                                                </ButtonBase>
+                                                            ) : value
+                                                    }
+                                                </TableCell>
+                                            );
+                                        })
+                                    }
+                                </TableRow>
+                            );
+                        })
+                        : (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} align="center">
+                                    <div className={classes.noProducts}>
+                                        <Tooltip title="Limpia el campo de busqueda o recarga la página" arrow>
+                                            <Info color="primary" />
+                                        </Tooltip>
+                                        &nbsp;&nbsp;&nbsp;No se encontraron Productos
+                                    </div>
+                                </TableCell>
                             </TableRow>
-                        );
-                    })
+                        )
                 }
             </MuiTableBody>
             <Dialog

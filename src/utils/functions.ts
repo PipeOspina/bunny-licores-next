@@ -42,7 +42,10 @@ export const getAlerFromFireAuthError = (
     }
 }
 
-export const sortProducts = (products: IProduct[], order: Order<keyof IProduct>) => {
+export const sortProducts = (
+    products: IProduct[],
+    order: Order<keyof IProduct>,
+) => {
     return products
         .slice(0, products.length)
         .sort((productA, productB) => {

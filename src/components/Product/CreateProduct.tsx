@@ -374,11 +374,12 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                                 value={product.name}
                                 placeholder="Nombre del producto"
                                 label="Nombre"
-                                onChange={({ target }) => updateProduct('name', target.value)}
+                                onChange={({ target }) => updateProduct('name', target.value.toUpperCase())}
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
                                 inputProps={{
+                                    autoCapitalize: 'characters',
                                     id: 'create-product-dialog-name-input',
                                     ['next-input']: 'create-product-dialog-description-input',
                                 }}
