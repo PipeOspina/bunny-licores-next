@@ -5,6 +5,7 @@ import { bindKeyboard } from 'react-swipeable-views-utils';
 import { Add, Delete, Done, NavigateBefore, NavigateNext, Share } from '@material-ui/icons';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import { useDispatch } from 'react-redux';
+import Image from 'next/image';
 import useDialog from '@hooks/dialog';
 import { addAlert } from '@actions/alert';
 
@@ -259,7 +260,7 @@ const SelectDefaultImage = ({
                                     const sufix = isSelected ? 'da' : 'r';
                                     return (
                                         <div className={classes.imageContainer} key={`IMAGE-SELECTOR-${path}-${i}`}>
-                                            <img src={path} />
+                                            <Image src={path} alt={path} />
                                             <Collapse
                                                 in={imageIndex === i}
                                                 className={classes.collapse}
@@ -361,7 +362,8 @@ const SelectDefaultImage = ({
                                         onDoubleClick={() => setSelectedImage(i)}
                                         key={`IMAGES-VERTICAL-SCROLL-${path}-${i}`}
                                     >
-                                        <img
+                                        <Image
+                                            alt={path}
                                             src={path}
                                             id={`IMAGES-VERTICAL-SCROLL-${path}-${i}`}
                                             className={`

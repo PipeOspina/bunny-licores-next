@@ -11,6 +11,7 @@ import { MenuItems } from '@constants/global';
 import { useRouter } from "next/router";
 import { useCharging } from "@hooks/charging";
 import { IIndexCharging } from "@interfaces/Charging";
+import Image from 'next/image';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -116,13 +117,13 @@ const CustomToolbar: FC = () => {
                         {
                             matches && user
                                 ? (
-                                    <img
+                                    <Image
                                         src="/svgs/Logo.svg"
                                         alt="Logo of the liquor store"
                                         className={`${classes.logo} ${classes.logoGrow}`}
                                     />
                                 ) : (
-                                    <img
+                                    <Image
                                         src="/svgs/FullLogo.svg"
                                         alt="Logo of the liquor store"
                                         className={`${classes.logo} ${classes.logoGrow} ${!user ? classes.logoCentered : ''}`}

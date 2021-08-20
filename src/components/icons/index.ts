@@ -4,6 +4,8 @@ export {
     Logout,
 }
 
-export default {
-    Logout,
+const Export = {
+    Logout
 }
+
+export default Export;

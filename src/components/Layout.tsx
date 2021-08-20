@@ -93,8 +93,8 @@ export const Layout: FC = ({ children }) => {
                             <DialogContent>
                                 <Markdown
                                     components={{
-                                        p: ({ node, ...props }) => <DialogContentText {...props} />,
-                                        strong: ({ node, ...props }) => <b><Typography variant="inherit" color="primary" {...props} /></b>,
+                                        p: ({ node, color, ref, ...props }) => <DialogContentText {...props} />,
+                                        strong: ({ node, color, ref, ...props }) => <b><Typography variant="inherit" color="primary" {...props} /></b>,
                                     }}
                                     rehypePlugins={[rehypeRaw]}
                                 >

@@ -7,6 +7,7 @@ import { numberToCOP } from 'utils/converters';
 import { makeStyles, createStyles, useTheme } from '@material-ui/styles';
 import Link from 'components/Link';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { Info } from '@material-ui/icons';
 
 interface Props {
@@ -268,7 +269,7 @@ const TableBody: FC<Props> = (props) => {
             >
                 <DialogContent>
                     <Link href={imageURL} target="_blank">
-                        <img src={imageURL} className={classes.image} />
+                        <Image src={imageURL} className={classes.image} alt={imageURL} />
                     </Link>
                 </DialogContent>
             </Dialog>

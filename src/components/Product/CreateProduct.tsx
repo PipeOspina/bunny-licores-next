@@ -2,6 +2,7 @@ import { initialProduct, IProduct, IProductModRef, IRelatedProduct } from '@inte
 import { Avatar, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Grow, IconButton, TextField, Theme, Typography, useMediaQuery, Chip } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import React, { ChangeEventHandler, Dispatch, FC, KeyboardEventHandler, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import NumberFormat from 'components/CustomNumberFormat';
 import SelectDefaultImage from 'components/utils/SelectDefaultImage';
 import { createStyles, makeStyles, useTheme } from '@material-ui/styles';
@@ -110,6 +111,7 @@ const useStyles = makeStyles((theme: Theme) =>
 const CreateProduct: FC<Props> = ({ hideButton, products }) => {
     const [open, setOpen] = hideButton
         ? [hideButton.open, hideButton.setOpen]
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         : useState(false);
     const [product, setProduct] = useState<IProduct>(initialProduct);
     const [errors, setErrors] = useState<Errors>({});
@@ -428,6 +430,7 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                                                     tagValue.map(({ images, name }: IProduct, index) => (
                                                         <Chip
                                                             {...getTagProps({ index })}
+                                                            key={`CREATE_PRODUCT_IMAGE_CHIP_${name}_${images.default?.publicURL}`}
                                                             label={name}
                                                             avatar={images ? <Avatar src={images.default?.publicURL} /> : undefined}
                                                             className={classes.chip}
@@ -441,11 +444,12 @@ const CreateProduct: FC<Props> = ({ hideButton, products }) => {
                                                             images
                                                                 ? (
                                                                     <div className={classes.imageCheckContainer}>
-                                                                        <img
+                                                                        <Image
                                                                             src={images.default?.publicURL}
                                                                             height="24"
                                                                             width="24"
                                                                             className={classes.imageCheck}
+                                                                            alt={name}
                                                                         />
                                                                         {
                                                                             selected && (
