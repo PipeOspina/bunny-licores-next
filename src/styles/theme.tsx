@@ -1,9 +1,9 @@
-import { createMuiTheme, Theme } from '@material-ui/core/styles';
+import { createTheme, Theme } from '@material-ui/core/styles';
 import { esES } from '@material-ui/core/locale';
 
 const primary = '#CE5959'
 
-export const theme = createMuiTheme({
+export const theme = createTheme({
     palette: {
         primary: {
             main: primary,
