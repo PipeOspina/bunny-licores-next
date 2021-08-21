@@ -60,7 +60,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint --fix"
+      "pre-commit": "yarn lint --fix",
+      "post-commit": "git rev-parse --abbrev-ref HEAD"
     }
   }
 }
