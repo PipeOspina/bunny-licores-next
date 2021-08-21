@@ -9,10 +9,11 @@ import { store } from '@store';
 import { withRouter } from 'next/router';
 import Layout from 'components/Layout';
 import '../utils/polyfills';
+
 class MyApp extends App {
 	componentDidMount() {
 		// Remove the server-side injected CSS.
-		const jssStyles = document.querySelector("#jss-server-side");
+		const jssStyles = document.querySelector('#jss-server-side');
 		if (jssStyles) {
 			jssStyles.parentNode.removeChild(jssStyles);
 		}
@@ -25,9 +26,16 @@ class MyApp extends App {
 			<>
 				<Head>
 					<title>Bunny Licores</title>
-					<meta property="og:title" content="Bunny Licores" key="title" />
+					<meta
+						property="og:title"
+						content="Bunny Licores"
+						key="title"
+					/>
 					<meta charSet="utf-8" />
-					<meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
+					<meta
+						name="viewport"
+						content="minimum-scale=1, initial-scale=1, width=device-width"
+					/>
 				</Head>
 				<Provider store={store}>
 					<ThemeProvider theme={theme}>

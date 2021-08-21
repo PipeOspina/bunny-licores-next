@@ -1,15 +1,11 @@
 import React from 'react';
-import { useRouter } from "next/router";
+import { useRouter } from 'next/router';
 
 const Product = () => {
-    const router = useRouter();
-    const { barcode } = router.query;
+	const router = useRouter();
+	const { barcode } = router.query;
 
-    return (
-        <>
-            Código de barras: {barcode}
-        </>
-    );
-}
+	return <>Código de barras: {barcode}</>;
+};
 
 export default Product;

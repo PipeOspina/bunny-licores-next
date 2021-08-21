@@ -1,14 +1,20 @@
-import { FC } from "react";
-import Layout from "components/Layout";
-import { useDispatch } from "@hooks/redux";
-import { setGlobalCharging } from "@actions/charging";
+import React, { FC } from 'react';
+import { useDispatch } from '@hooks/redux';
+import { setGlobalCharging } from '@actions/charging';
 
 const Ventas: FC = () => {
-    const dispatch = useDispatch();
+	const dispatch = useDispatch();
 
-    return (
-        <div onClick={() => dispatch(setGlobalCharging('auth', true))}>Hellowis</div>
-    );
-}
+	return (
+		<div
+			onKeyPress={() => dispatch(setGlobalCharging('auth', true))}
+			onClick={() => dispatch(setGlobalCharging('auth', true))}
+			role="button"
+			tabIndex={0}
+		>
+			Hellowis
+		</div>
+	);
+};
 
 export default Ventas;

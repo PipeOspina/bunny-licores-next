@@ -9,7 +9,10 @@ export default class MyDocument extends Document {
 			<Html lang="es">
 				<Head>
 					<link rel="manifest" href="/site.webmanifest.json" />
-					<meta name="theme-color" content={theme.palette.primary.main} />
+					<meta
+						name="theme-color"
+						content={theme.palette.primary.main}
+					/>
 					<link rel="shortcut icon" href="/favicon-32x32.png" />
 					<link
 						rel="stylesheet"
@@ -38,6 +41,9 @@ MyDocument.getInitialProps = async (ctx) => {
 
 	return {
 		...initialProps,
-		styles: [...React.Children.toArray(initialProps.styles), sheets.getStyleElement()],
+		styles: [
+			...React.Children.toArray(initialProps.styles),
+			sheets.getStyleElement(),
+		],
 	};
 };

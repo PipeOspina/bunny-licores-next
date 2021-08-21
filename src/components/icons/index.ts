@@ -1,11 +1,9 @@
 import { Logout } from './Logout';
 
-export {
-    Logout,
-}
+export { Logout };
 
 const Export = {
-    Logout
-}
+	Logout,
+};
 
 export default Export;
