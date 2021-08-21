@@ -12,8 +12,6 @@ export const Logout = (props: SvgIconProps) => (
 	</SvgIcon>
 );
 
-const holi = () => {};
-
 export default {
 	Logout,
 };
