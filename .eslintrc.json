@@ -25,6 +25,8 @@
     "import/no-extraneous-dependencies": "off",
     "react/jsx-no-duplicate-props": ["error", { "ignoreCase": false }],
     "react/no-array-index-key": "off",
-    "@next/next/no-img-element": "off"
+    "@next/next/no-img-element": "off",
+    "guard-for-in": "off",
+    "no-restricted-syntax": "off"
   }
 }

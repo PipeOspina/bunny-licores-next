@@ -1,57 +1,58 @@
 export interface IGlobalCharging {
-    auth: boolean;
-    index: boolean;
-    productTable: boolean;
-    createProduct: boolean;
+	auth: boolean;
+	index: boolean;
+	productTable: boolean;
+	createProduct: boolean;
 }
 
 export const initialGlobalCharging: IGlobalCharging = {
-    auth: false,
-    index: false,
-    productTable: false,
-    createProduct: false,
-}
+	auth: false,
+	index: false,
+	productTable: false,
+	createProduct: false,
+};
 
 export interface IAuthCharging {
-    login: boolean;
-    logout: boolean;
-    starting: boolean;
+	login: boolean;
+	logout: boolean;
+	starting: boolean;
 }
 
 export const initialAuthCharging: IAuthCharging = {
-    login: false,
-    logout: false,
-    starting: false,
-}
+	login: false,
+	logout: false,
+	starting: false,
+};
 
 export interface IIndexCharging {
-    redirect: boolean;
+	redirect: boolean;
 }
 
 export const initialIndexCharging: IIndexCharging = {
-    redirect: false,
-}
+	redirect: false,
+};
 
 export interface IProductTableCharging {
-    deleteProducts: boolean;
-    getProducts: boolean;
+	deleteProducts: boolean;
+	getProducts: boolean;
 }
 
 export const initialProductTableCharging: IProductTableCharging = {
-    getProducts: false,
-    deleteProducts: false,
-}
+	getProducts: false,
+	deleteProducts: false,
+};
 
 export interface ICreateProductCharging {
-    addProduct: boolean;
+	addProduct: boolean;
 }
 
 export const initialCreateProductCharging: ICreateProductCharging = {
-    addProduct: false,
-}
+	addProduct: false,
+};
 
-export type TCharging = IGlobalCharging
-    | IAuthCharging
-    | IIndexCharging
-    | IProductTableCharging
-    | ICreateProductCharging;
+export type TCharging =
+	| IGlobalCharging
+	| IAuthCharging
+	| IIndexCharging
+	| IProductTableCharging
+	| ICreateProductCharging;

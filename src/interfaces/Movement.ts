@@ -1,16 +1,16 @@
-import { IProductRef } from "./Product";
+import { IProductRef } from './Product';
 
 export interface IMovement {
-    product: IProductRef;
-    quantity: number;
-    unitPrice: number;
-    total: number;
-    deposit?: IDeposit;
+	product: IProductRef;
+	quantity: number;
+	unitPrice: number;
+	total: number;
+	deposit?: IDeposit;
 }
 
 export interface IDeposit {
-    quantity: number;
-    unitPrice: number;
-    total: number;
-    payedDate?: Date;
+	quantity: number;
+	unitPrice: number;
+	total: number;
+	payedDate?: Date;
 }

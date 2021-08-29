@@ -1,131 +1,134 @@
-import { ReactNode, useState } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@material-ui/core'
+/* eslint-disable no-nested-ternary */
+/* eslint-disable react/react-in-jsx-scope */
+/* eslint-disable react/no-children-prop */
+import { ReactNode, useState } from 'react';
+import {
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
+	Button,
+} from '@material-ui/core';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
 export enum DialogType {
-    WARNING = 'DIALOG_TYPE/WARNING',
-    ERROR = 'DIALOG_TYPE/ERROR',
+	WARNING = 'DIALOG_TYPE/WARNING',
+	ERROR = 'DIALOG_TYPE/ERROR',
 }
 
 interface Props {
-    message?: ReactNode;
-    title?: ReactNode;
-    type?: DialogType;
-    resetOnClose?: boolean;
-    preventClose?: boolean;
-    useMarkdown?: boolean;
-    onCancel?: () => void;
-    onAccept?: () => void;
+	message?: ReactNode;
+	title?: ReactNode;
+	type?: DialogType;
+	resetOnClose?: boolean;
+	preventClose?: boolean;
+	useMarkdown?: boolean;
+	onCancel?: () => void;
+	onAccept?: () => void;
 }
 
 interface ActionArgs {
-    reset?: boolean;
-    preventClose?: boolean;
+	reset?: boolean;
+	preventClose?: boolean;
 }
 
 const useDialog = ({
-    message = '',
-    title = 'Advertencia',
-    type = DialogType.WARNING,
-    resetOnClose = true,
-    useMarkdown,
-    onCancel,
-    onAccept,
+	message = '',
+	title = 'Advertencia',
+	type = DialogType.WARNING,
+	resetOnClose = true,
+	useMarkdown,
+	onCancel,
+	onAccept,
 }: Props) => {
-    const [open, setOpen] = useState(false);
-    const [props, setProps] = useState({
-        message,
-        title,
-        type,
-    });
+	const [open, setOpen] = useState(false);
+	const [props, setProps] = useState({
+		message,
+		title,
+		type,
+	});
 
-    const setDialogProps = (key: keyof Props, value: ReactNode | DialogType | boolean) => {
-        setProps((current) => ({
-            ...current,
-            [key]: value,
-        }));
-    };
+	const setDialogProps = (
+		key: keyof Props,
+		value: ReactNode | DialogType | boolean,
+	) => {
+		setProps((current) => ({
+			...current,
+			[key]: value,
+		}));
+	};
 
-    const closeDialog = () => {
-        setOpen(false);
-        if (resetOnClose) {
-            setTimeout(() => {
-                setProps((current) => ({
-                    ...current,
-                    message,
-                    title,
-                    type,
-                }))
-            }, 500);
-        }
-    };
+	const closeDialog = () => {
+		setOpen(false);
+		if (resetOnClose) {
+			setTimeout(() => {
+				setProps((current) => ({
+					...current,
+					message,
+					title,
+					type,
+				}));
+			}, 500);
+		}
+	};
 
-    const openDialog = () => setOpen(true);
+	const openDialog = () => setOpen(true);
 
-    const handleCancel = ({ preventClose = false }: ActionArgs = {}) => {
-        if (props.type === DialogType.WARNING) {
-            !preventClose && closeDialog();
-            onCancel && onCancel();
-        }
-    };
+	const handleCancel = ({ preventClose = false }: ActionArgs = {}) => {
+		if (props.type === DialogType.WARNING) {
+			!preventClose && closeDialog();
+			onCancel && onCancel();
+		}
+	};
 
-    const handleAccept = ({ preventClose = false }: ActionArgs = {}) => {
-        !preventClose && closeDialog();
-        onAccept && onAccept();
-    };
+	const handleAccept = ({ preventClose = false }: ActionArgs = {}) => {
+		!preventClose && closeDialog();
+		onAccept && onAccept();
+	};
 
-    const Component = () => (
-        <Dialog
-            open={open}
-            onClose={() => setOpen(false)}
-        >
-            <DialogTitle>{props.title}</DialogTitle>
-            <DialogContent>
-                {
-                    useMarkdown && typeof props.message === 'string'
-                        ? (
-                            <ReactMarkdown
-                                rehypePlugins={[rehypeRaw]}
-                                children={props.message}
-                                skipHtml={false}
-                            />
-                        )
-                        : typeof props.message === 'string'
-                            ? (
-                                <DialogContentText>{props.message}</DialogContentText>
-                            )
-                            : props.message
-                }
-            </DialogContent>
-            <DialogActions>
-                {
-                    props.type === DialogType.WARNING
-                    && (
-                        <Button
-                            onClick={() => handleCancel()}
-                        >
-                            Cancelar
-                        </Button>
-                    )
-                }
-                <Button
-                    color={props.type === DialogType.ERROR ? 'secondary' : 'primary'}
-                    onClick={() => handleAccept()}
-                    variant="contained"
-                >
-                    Aceptar
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+	const Component = () => (
+		<Dialog open={open} onClose={() => setOpen(false)}>
+			<DialogTitle>{props.title}</DialogTitle>
+			<DialogContent>
+				{useMarkdown && typeof props.message === 'string' ? (
+					<ReactMarkdown
+						rehypePlugins={[rehypeRaw]}
+						children={props.message}
+						skipHtml={false}
+					/>
+				) : typeof props.message === 'string' ? (
+					<DialogContentText>{props.message}</DialogContentText>
+				) : (
+					props.message
+				)}
+			</DialogContent>
+			<DialogActions>
+				{props.type === DialogType.WARNING && (
+					<Button onClick={() => handleCancel()}>Cancelar</Button>
+				)}
+				<Button
+					color={
+						props.type === DialogType.ERROR
+							? 'secondary'
+							: 'primary'
+					}
+					onClick={() => handleAccept()}
+					variant="contained"
+				>
+					Aceptar
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
 
-    return {
-        Component,
-        setDialogProps,
-        closeDialog,
-        openDialog,
-    };
+	return {
+		Component,
+		setDialogProps,
+		closeDialog,
+		openDialog,
+	};
 };
 
 export default useDialog;

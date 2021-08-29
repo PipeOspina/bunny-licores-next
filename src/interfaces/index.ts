@@ -1,4 +1,3 @@
-import * as Alert from './Alert';
 import * as Buy from './Buy';
 import * as Charging from './Charging';
 import * as Error from './Error';
@@ -9,26 +8,16 @@ import * as Store from './Store';
 import * as Table from './Table';
 import * as User from './User';
 
-export {
-    Buy,
-    Charging,
-    Error,
-    Global,
-    Product,
-    Sale,
-    Store,
-    Table,
-    User,
-};
+export { Buy, Charging, Error, Global, Product, Sale, Store, Table, User };
 
 export default {
-    Buy,
-    Charging,
-    Error,
-    Global,
-    Product,
-    Sale,
-    Store,
-    Table,
-    User,
-}
+	Buy,
+	Charging,
+	Error,
+	Global,
+	Product,
+	Sale,
+	Store,
+	Table,
+	User,
+};

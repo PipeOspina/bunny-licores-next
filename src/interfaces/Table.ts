@@ -1,32 +1,32 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 export interface Column<T = any> {
-    component: ReactNode;
-    id: keyof T;
-    noSort?: boolean;
-    align?: 'left' | 'center' | 'right' | 'justify' | 'inherit';
+	component: ReactNode;
+	id: keyof T;
+	noSort?: boolean;
+	align?: 'left' | 'center' | 'right' | 'justify' | 'inherit';
 }
 
 export interface Order<T = string> {
-    direction: 'asc' | 'desc';
-    id?: T;
+	direction: 'asc' | 'desc';
+	id?: T;
 }
 
 export interface Pagination {
-    rowsPerPage: number;
-    rowsPerPageOptions: number[];
-    page: number;
+	rowsPerPage: number;
+	rowsPerPageOptions: number[];
+	page: number;
 }
 
 export interface Changes {
-    allreadyCharged: boolean;
-    newIds: string[];
-    deletedIds: string[];
-    modifiedIds: string[];
+	allreadyCharged: boolean;
+	newIds: string[];
+	deletedIds: string[];
+	modifiedIds: string[];
 }
 
 export const initialPagination: Pagination = {
-    page: 0,
-    rowsPerPage: 10,
-    rowsPerPageOptions: [5, 10, 25, 50, 100]
-}
+	page: 0,
+	rowsPerPage: 10,
+	rowsPerPageOptions: [5, 10, 25, 50, 100],
+};

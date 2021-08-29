@@ -4,4 +4,4 @@ export { theme };
 
 export default {
 	theme,
-}
+};

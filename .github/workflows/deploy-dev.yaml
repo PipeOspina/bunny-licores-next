@@ -21,12 +21,12 @@ jobs:
         with:
           node-version: 14
 
-      - name: Install Dependencies
+      - name: Install
         uses: borales/actions-yarn@master
         with:
           cmd: install
 
-      - name: Build SSR
+      - name: Build
         uses: borales/actions-yarn@master
         env:
           NEXT_PUBLIC_FIREBASE__API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE__API_KEY }}
