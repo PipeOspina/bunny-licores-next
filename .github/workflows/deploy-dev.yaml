@@ -19,7 +19,7 @@ jobs:
       - name: Use NodeJS
         uses: actions/setup-node@master
         with:
-          node-version: 12
+          node-version: '12'
 
       - name: Install Dependencies
         uses: borales/actions-yarn@master
