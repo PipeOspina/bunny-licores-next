@@ -24,7 +24,15 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build SSR
+      - name: Build
+        env:
+          NEXT_PUBLIC_FIREBASE__API_KEY: ${{ sectres.API_KEY }}
+          NEXT_PUBLIC_FIREBASE__AUTH_DOMAIN: ${{ secrets.PROJECT_ID.firebaseapp.com }}
+          NEXT_PUBLIC_FIREBASE__PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE__STORAGE_BUTCKET: ${{ secrets.PROJECT_ID.appspot.com }}
+          NEXT_PUBLIC_FIREBASE__MESSAGING_SENDER_ID: ${{ secrets.SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE__APP_ID: ${{ secrets.APP_ID }}
+          NEXT_PUBLIC_FIREBASE__MESAUREMENT_ID: ${{ secrets.G-MEASUREMENT_ID }}
         run: npm run build
 
       - name: Setup GCP
