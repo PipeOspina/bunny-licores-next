@@ -1,9 +1,9 @@
-name: Deploy Dev
+name: Deploy Prod
 
 on:
   push:
     branches:
-      - dev
+      - prod
 
 jobs:
   build:
