@@ -54,9 +54,9 @@
     "typescript": "^4.3.5"
   },
   "engines": {
-    "node": "~12",
+    "node": "^14.17",
     "npm": "^7.12.1",
-    "yarn": "~1.22.4"
+    "yarn": "^1.22.4"
   },
   "husky": {
     "hooks": {

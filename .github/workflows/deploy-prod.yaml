@@ -19,12 +19,15 @@ jobs:
       - name: Use NodeJS
         uses: actions/setup-node@master
         with:
-          node-version: '12'
+          node-version: 14
 
       - name: Install Dependencies
-        run: npm install
+        uses: borales/actions-yarn@master
+        with:
+          cmd: install
 
       - name: Build
+        uses: borales/actions-yarn@master
         env:
           NEXT_PUBLIC_FIREBASE__API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE__API_KEY }}
           NEXT_PUBLIC_FIREBASE__AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE__AUTH_DOMAIN }}
@@ -33,12 +36,10 @@ jobs:
           NEXT_PUBLIC_FIREBASE__MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE__MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE__APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE__APP_ID }}
           NEXT_PUBLIC_FIREBASE__MESAUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE__MESAUREMENT_ID }}
-        run: npm run build
-
-      - name: Setup GCP
-        uses: google-github-actions/deploy-appengine@main
         with:
-          credentials: ${{ secrets.GCP_SA_KEY }}
+          cmd: build:dev
 
       - name: Deploy
         uses: google-github-actions/deploy-appengine@main
+        with:
+          credentials: ${{ secrets.GCP_SA_KEY }}
