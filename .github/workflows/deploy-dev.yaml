@@ -22,14 +22,10 @@ jobs:
           node-version: '12'
 
       - name: Install Dependencies
-        uses: borales/actions-yarn@master
-        with:
-          cmd: install
+        run: npm install
 
       - name: Build SSR
-        uses: borales/actions-yarn@master
-        with:
-          cmd: build:dev
+        run: npm run build:dev
 
       - name: Setup GCP
         uses: google-github-actions/deploy-appengine@main
