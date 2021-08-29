@@ -72,6 +72,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const Products = () => {
+	console.warn(process.env.NEXT_PUBLIC_FIREBASE__PROJECT_ID);
 	const [products, setProducts] = useState<IProduct[]>([]);
 	const [selectedProducts, setSelectedProducts] = useState<IProduct[]>([]);
 	const [openCreate, setOpenCreate] = useState(false);
@@ -374,7 +375,7 @@ const Products = () => {
 									updatePagination('page', page)
 								}
 								rowsPerPage={pagination.rowsPerPage}
-								onChangeRowsPerPage={({ target }) =>
+								onRowsPerPageChange={({ target }) =>
 									updatePagination(
 										'rowsPerPage',
 										Number.isNaN(
