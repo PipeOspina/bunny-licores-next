@@ -26,7 +26,7 @@ jobs:
 
       - name: Build
         env:
-          NEXT_PUBLIC_FIREBASE__API_KEY: ${{ sectres.API_KEY }}
+          NEXT_PUBLIC_FIREBASE__API_KEY: ${{ secrets.API_KEY }}
           NEXT_PUBLIC_FIREBASE__AUTH_DOMAIN: ${{ secrets.PROJECT_ID.firebaseapp.com }}
           NEXT_PUBLIC_FIREBASE__PROJECT_ID: ${{ secrets.PROJECT_ID }}
           NEXT_PUBLIC_FIREBASE__STORAGE_BUTCKET: ${{ secrets.PROJECT_ID.appspot.com }}
