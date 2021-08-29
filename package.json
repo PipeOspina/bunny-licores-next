@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:dev": "NEXT_ENV=dev npm run build",
+    "build:dev": "NEXT_ENV=dev yarn build",
     "start": "next start",
-    "start:prod": "NEXT_ENV=prod npm run dev",
+    "start:prod": "NEXT_ENV=prod yarn dev",
     "lint": "next lint"
   },
   "dependencies": {

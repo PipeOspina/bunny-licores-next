@@ -2,6 +2,8 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
+console.log(process.env);
+
 module.exports = {
     webpack: (config) => {
         config.module.rules.push({
