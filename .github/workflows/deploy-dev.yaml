@@ -22,12 +22,12 @@ jobs:
           node-version: 12
 
       - name: Install Dependencies
-        uses: borales/actions-yarn@vmaster
+        uses: borales/actions-yarn@master
         with:
           cmd: install
 
       - name: Build SSR
-        uses: borales/actions-yarn@vmaster
+        uses: borales/actions-yarn@master
         with:
           cmd: build:dev
 
